@@ -17,7 +17,7 @@ SMS provider 集成服务。
 provider 策略显式定义：
 
 - HeroSMS 和 SMSBower：激活至少满 2 分钟后才允许取消，匹配 provider 的 early-cancel 行为。
-- 公共激活对象暴露 `cancel_allowed_at`；调用方应使用该字段，而不是硬编码 provider 专属时间规则。
+- 公共激活对象暴露 `cancel_allowed_at`；调用方使用该字段表达 provider 专属时间规则。
 - 默认本地激活 TTL 为 20 分钟，除非 route/provider policy 或请求 lease 更短。
 - 5Sim 使用当前 Bearer-token REST API（`/v1/user/buy/activation`、`check`、`finish`、`cancel`、`profile`）；provider 返回订单过期时间时会保留该时间。
 - SMSBower 普通购买使用 `getNumberV2`；当 route 需要文档中仅 `getNumber` 明确支持的 `phoneException` 或 `ref` 时，自动回退到 `getNumber`。
@@ -48,7 +48,7 @@ protoc -I proto -I ../contracts/sms/proto --descriptor_set_out=/tmp/sms-internal
 sh scripts/generate-proto.sh
 ```
 
-`gen/` 下的生成物是本地构建产物，不提交到仓库。
+`gen/` 下的生成物是本地构建产物。
 
 测试：
 
