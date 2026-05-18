@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package byte.v.forge.sms.providers.smsbower.v1;
+
+import "google/protobuf/timestamp.proto";
+import "byte/v/forge/contracts/sms/v1/sms.proto";
+import "byte/v/forge/sms/internal/v1/sms_internal.proto";
+
+option csharp_namespace = "ByteVForge.Sms.Providers.SmsBower.V1";
+option go_package = "github.com/byte-v-forge/sms/gen/go/byte/v/forge/sms/providers/smsbower/v1;smsbowerv1";
+option java_multiple_files = true;
+option java_outer_classname = "SmsBowerProto";
+option java_package = "com.bytevforge.sms.providers.smsbower.v1";
+option php_namespace = "ByteVForge\\Sms\\Providers\\SmsBower\\V1";
+
+enum SmsBowerActivationStatusCode {
+  SMS_BOWER_ACTIVATION_STATUS_CODE_UNSPECIFIED = 0;
+  SMS_BOWER_ACTIVATION_STATUS_CODE_READY = 1;
+  SMS_BOWER_ACTIVATION_STATUS_CODE_RETRY_GET = 3;
+  SMS_BOWER_ACTIVATION_STATUS_CODE_COMPLETE = 6;
+  SMS_BOWER_ACTIVATION_STATUS_CODE_CANCEL = 8;
+}
+
+message SmsBowerProviderConfig {
+  byte.v.forge.sms.internal.v1.SmsProviderConfig config = 1;
+  string ref = 2;
+  string reseller_user_id = 3;
+}
+
+message SmsBowerProviderSelection {
+  repeated string include_provider_ids = 1;
+  repeated string exclude_provider_ids = 2;
+}
+
+message SmsBowerPhoneException {
+  string country_calling_code = 1;
+  string prefix_mask = 2;
+}
+
+message SmsBowerGetNumberRequest {
+  string upstream_service_key = 1;
+  int32 country_id = 2;
+  byte.v.forge.contracts.sms.v1.DecimalMoney min_price = 3;
+  byte.v.forge.contracts.sms.v1.DecimalMoney max_price = 4;
+  SmsBowerProviderSelection provider_selection = 5;
+  repeated SmsBowerPhoneException phone_exceptions = 6;
+  string ref = 7;
+  string reseller_user_id = 8;
+}
+
+message SmsBowerAccessNumberResponse {
+  string activation_id = 1;
+  string phone_number = 2;
+}
+
+message SmsBowerGetNumberV2Response {
+  string activation_id = 1;
+  string phone_number = 2;
+  byte.v.forge.contracts.sms.v1.DecimalMoney activation_cost = 3;
+  string country_code = 4;
+  bool can_get_another_sms = 5;
+  google.protobuf.Timestamp activation_time = 6;
+  string activation_operator = 7;
+}
+
+message SmsBowerGetStatusRequest {
+  string activation_id = 1;
+}
+
+message SmsBowerGetStatusResponse {
+  string raw_status = 1;
+  string code = 2;
+  string last_code = 3;
+}
+
+message SmsBowerSetStatusRequest {
+  string activation_id = 1;
+  SmsBowerActivationStatusCode status = 2;
+}
+
+message SmsBowerSetStatusResponse {
+  string raw_status = 1;
+}
+
+message SmsBowerCountry {
+  byte.v.forge.sms.internal.v1.ProviderSmsCountry country = 1;
+  int32 country_id = 2;
+  string russian_name = 3;
+  string english_name = 4;
+  string chinese_name = 5;
+}
+
+message SmsBowerPriceOffer {
+  byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer offer = 1;
+  string provider_id = 2;
+  int32 count = 3;
+}
+
+message SmsBowerInboundWebhookRequest {
+  string activation_id = 1;
+  string upstream_service_key = 2;
+  string message_text = 3;
+  string code = 4;
+  int32 country_id = 5;
+  google.protobuf.Timestamp received_at = 6;
+}

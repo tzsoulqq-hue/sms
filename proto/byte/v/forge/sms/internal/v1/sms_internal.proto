@@ -1,0 +1,211 @@
+syntax = "proto3";
+
+package byte.v.forge.sms.internal.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "byte/v/forge/contracts/sms/v1/sms.proto";
+
+option csharp_namespace = "ByteVForge.Sms.Internal.V1";
+option go_package = "github.com/byte-v-forge/sms/gen/go/byte/v/forge/sms/internal/v1;smsinternalv1";
+option java_multiple_files = true;
+option java_outer_classname = "SmsInternalProto";
+option java_package = "com.bytevforge.sms.internal.v1";
+option php_namespace = "ByteVForge\\Sms\\Internal\\V1";
+
+service SmsProviderAdminService {
+  rpc UpsertProviderConfig(UpsertProviderConfigRequest) returns (UpsertProviderConfigResponse);
+  rpc GetProviderConfig(GetProviderConfigRequest) returns (GetProviderConfigResponse);
+  rpc ListProviderConfigs(ListProviderConfigsRequest) returns (ListProviderConfigsResponse);
+  rpc DeleteProviderConfig(DeleteProviderConfigRequest) returns (DeleteProviderConfigResponse);
+  rpc GetProviderBalance(GetProviderBalanceRequest) returns (GetProviderBalanceResponse);
+}
+
+service SmsProviderCatalogService {
+  rpc ListProviderApplications(ListProviderApplicationsRequest) returns (ListProviderApplicationsResponse);
+  rpc ListProviderCountries(ListProviderCountriesRequest) returns (ListProviderCountriesResponse);
+  rpc ListProviderPriceOffers(ListProviderPriceOffersRequest) returns (ListProviderPriceOffersResponse);
+  rpc ListTopProviderCountriesByApplication(ListTopProviderCountriesByApplicationRequest) returns (ListTopProviderCountriesByApplicationResponse);
+}
+
+service SmsWebhookIngestService {
+  rpc IngestInboundMessage(IngestInboundMessageRequest) returns (IngestInboundMessageResponse);
+}
+
+message ProviderError {
+  byte.v.forge.contracts.sms.v1.SmsError public_error = 1;
+  string provider_error_code = 2;
+  string raw_response = 3;
+}
+
+message ProviderActivation {
+  byte.v.forge.contracts.sms.v1.SmsActivation public_activation = 1;
+  string provider_config_id = 2;
+  string provider_key = 3;
+  string upstream_activation_id = 4;
+  string upstream_operator = 5;
+  string raw_status = 6;
+  ProviderError last_provider_error = 7;
+  google.protobuf.Struct raw_metadata = 20;
+}
+
+message SmsProviderConfig {
+  string provider_config_id = 1;
+  string provider_key = 2;
+  string display_name = 3;
+  bool enabled = 4;
+  string api_endpoint = 5;
+  string credential_secret_ref = 6;
+  string proxy_ref = 7;
+  byte.v.forge.contracts.sms.v1.SmsTarget default_target = 8;
+  SmsProviderCapabilities capabilities = 9;
+  map<string, string> labels = 20;
+  google.protobuf.Timestamp created_at = 30;
+  google.protobuf.Timestamp updated_at = 31;
+}
+
+message SmsProviderCapabilities {
+  bool supports_balance = 1;
+  bool requires_mark_message_sent = 2;
+  bool supports_additional_code = 3;
+  bool supports_catalog = 4;
+  bool supports_price_lookup = 5;
+  bool supports_upstream_provider_selection = 6;
+  bool supports_webhook_notifications = 7;
+  repeated string supported_application_keys = 10;
+  repeated string supported_country_iso2 = 11;
+}
+
+message UpsertProviderConfigRequest {
+  SmsProviderConfig config = 1;
+}
+
+message UpsertProviderConfigResponse {
+  SmsProviderConfig config = 1;
+  ProviderError error = 2;
+}
+
+message GetProviderConfigRequest {
+  string provider_config_id = 1;
+}
+
+message GetProviderConfigResponse {
+  SmsProviderConfig config = 1;
+  ProviderError error = 2;
+}
+
+message ListProviderConfigsRequest {
+  bool include_disabled = 1;
+  string provider_key = 2;
+}
+
+message ListProviderConfigsResponse {
+  repeated SmsProviderConfig configs = 1;
+  ProviderError error = 2;
+}
+
+message DeleteProviderConfigRequest {
+  string provider_config_id = 1;
+}
+
+message DeleteProviderConfigResponse {
+  ProviderError error = 1;
+}
+
+message GetProviderBalanceRequest {
+  string provider_config_id = 1;
+}
+
+message GetProviderBalanceResponse {
+  byte.v.forge.contracts.sms.v1.DecimalMoney balance = 1;
+  ProviderError error = 2;
+}
+
+message ProviderSmsApplicationInfo {
+  byte.v.forge.contracts.sms.v1.SmsApplicationInfo public_application = 1;
+  string upstream_service_key = 2;
+  google.protobuf.Struct raw_metadata = 20;
+}
+
+message ProviderSmsCountry {
+  byte.v.forge.contracts.sms.v1.SmsCountry public_country = 1;
+  string provider_country_id = 2;
+  google.protobuf.Struct raw_metadata = 20;
+}
+
+message ProviderSmsPriceOffer {
+  byte.v.forge.contracts.sms.v1.SmsPriceOffer public_offer = 1;
+  string provider_country_id = 2;
+  string upstream_provider_id = 3;
+  string upstream_provider_name = 4;
+  google.protobuf.Struct raw_metadata = 20;
+}
+
+message ProviderSmsCountryPriceSummary {
+  ProviderSmsCountry country = 1;
+  repeated ProviderSmsPriceOffer offers = 2;
+}
+
+message ListProviderApplicationsRequest {
+  string provider_config_id = 1;
+}
+
+message ListProviderApplicationsResponse {
+  repeated ProviderSmsApplicationInfo applications = 1;
+  ProviderError error = 2;
+}
+
+message ListProviderCountriesRequest {
+  string provider_config_id = 1;
+}
+
+message ListProviderCountriesResponse {
+  repeated ProviderSmsCountry countries = 1;
+  ProviderError error = 2;
+}
+
+message ListProviderPriceOffersRequest {
+  string provider_config_id = 1;
+  string application_key = 2;
+  string country_iso2 = 3;
+  string provider_country_id = 4;
+  bool include_upstream_provider_breakdown = 5;
+}
+
+message ListProviderPriceOffersResponse {
+  repeated ProviderSmsPriceOffer offers = 1;
+  ProviderError error = 2;
+}
+
+message ListTopProviderCountriesByApplicationRequest {
+  string provider_config_id = 1;
+  string application_key = 2;
+  int32 limit = 3;
+}
+
+message ListTopProviderCountriesByApplicationResponse {
+  repeated ProviderSmsCountryPriceSummary countries = 1;
+  ProviderError error = 2;
+}
+
+message InboundProviderMessage {
+  string provider_config_id = 1;
+  string provider_key = 2;
+  string upstream_activation_id = 3;
+  string application_key = 4;
+  string provider_country_id = 5;
+  string message_text = 6;
+  string code = 7;
+  google.protobuf.Timestamp received_at = 8;
+  google.protobuf.Struct raw_payload = 20;
+}
+
+message IngestInboundMessageRequest {
+  InboundProviderMessage message = 1;
+}
+
+message IngestInboundMessageResponse {
+  ProviderActivation activation = 1;
+  byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent public_event = 2;
+  ProviderError error = 3;
+}
