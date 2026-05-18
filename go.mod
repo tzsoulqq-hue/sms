@@ -3,7 +3,6 @@ module github.com/byte-v-forge/sms
 go 1.26
 
 require (
-	github.com/byte-v-forge/contracts-go v0.1.0
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
 )

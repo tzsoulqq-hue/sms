@@ -13,7 +13,7 @@
 
 ## 开发流程
 
-1. 公共能力先修改 `contracts/sms`，再同步 `contracts-go`。
+1. 公共能力在本仓 `proto/byte/v/forge/contracts/sms/v1/` 修改，并同步生成到 `gen/`。
 2. provider 私有 shape 放在 `proto/byte/v/forge/sms/providers/<provider>/v1/`。
 3. 业务内部模型放在 `proto/byte/v/forge/sms/internal/v1/`。
 4. 外部 provider 调用必须设置超时，并按 provider 文档实现状态和错误映射。
@@ -22,8 +22,7 @@
 
 ```sh
 sh scripts/generate-proto.sh
-go test ./...
 go vet ./...
 ```
 
-`gen/` 是本地生成目录，不提交。
+`gen/` 承载本仓契约生成物，随契约一起提交。

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	smsv1 "github.com/byte-v-forge/contracts-go/byte/v/forge/contracts/sms/v1"
+	smsv1 "github.com/byte-v-forge/sms/gen/go/byte/v/forge/contracts/sms/v1"
 	"github.com/byte-v-forge/sms/internal/core"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"

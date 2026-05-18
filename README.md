@@ -24,7 +24,7 @@ provider 策略显式定义：
 
 ## 契约
 
-- 公共 SMS 能力定义在 `contracts` 仓库。
+- 公共 SMS 能力定义在本仓 `proto/byte/v/forge/contracts/sms/v1/`。
 - provider 配置、上游 service key、上游 provider ID、provider country ID、原始上游响应、provider options 和 webhook payload 细节都是 SMS 内部模型。
 - 共享内部 SMS 模型位于 `proto/byte/v/forge/sms/internal/v1/sms_internal.proto`。
 - provider 专属 shape 放在独立 provider 目录，例如：
@@ -35,7 +35,8 @@ provider 策略显式定义：
 编译检查：
 
 ```sh
-protoc -I proto -I ../contracts/sms/proto --descriptor_set_out=/tmp/sms-internal.pb \
+protoc -I proto --descriptor_set_out=/tmp/sms-internal.pb \
+  proto/byte/v/forge/contracts/sms/v1/sms.proto \
   proto/byte/v/forge/sms/internal/v1/sms_internal.proto \
   proto/byte/v/forge/sms/providers/fivesim/v1/fivesim.proto \
   proto/byte/v/forge/sms/providers/herosms/v1/herosms.proto \
@@ -48,12 +49,11 @@ protoc -I proto -I ../contracts/sms/proto --descriptor_set_out=/tmp/sms-internal
 sh scripts/generate-proto.sh
 ```
 
-`gen/` 下的生成物是本地构建产物。
+`gen/` 下的生成物随契约一起提交。
 
-测试：
+检查：
 
 ```sh
-go test ./...
 go vet ./...
 ```
 
