@@ -7,6 +7,7 @@ SMS provider 集成服务。
 ## 当前实现
 
 - Go module：`github.com/byte-v-forge/sms`
+- 运行入口：`cmd/sms-service`
 - 公共契约 adapter：`internal/adapters/grpc`
 - 核心生命周期服务：`internal/app`
 - 领域模型和端口：`internal/core`
@@ -57,6 +58,12 @@ sh scripts/generate-proto.sh
 go vet ./...
 ```
 
+## 运行配置
+
+`sms-service` 通过 `SMS_LISTEN_ADDR` 监听 gRPC，默认 `:50051`。
+
+HeroSMS 路由使用 `SMS_PROVIDER=herosms`、`SMS_PROVIDER_API_KEY`、`SMS_PROVIDER_ENDPOINT`、`SMS_APPLICATION_KEY`、`SMS_COUNTRY_ISO2`、`SMS_COUNTRY_CALLING_CODE`、`SMS_PROVIDER_COUNTRY_ID`、`SMS_UPSTREAM_SERVICE_KEY`、`SMS_MAX_PRICE_DECIMAL` 和 `SMS_HTTP_PROXY` 配置。
+
 ## 贡献与安全
 
 - 贡献规则见 `CONTRIBUTING.md`。
@@ -66,6 +73,4 @@ go vet ./...
 ## 尚未实现
 
 - PostgreSQL 持久化 adapter。
-- 运行时配置加载和 secret 解析。
-- 进程入口和 gRPC server bootstrap。
 - 基于标准化 route/application mapping 的公共 catalog gRPC adapter。
