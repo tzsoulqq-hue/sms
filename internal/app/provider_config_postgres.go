@@ -71,6 +71,11 @@ CREATE TABLE IF NOT EXISTS sms_provider_configs (
   default_country_calling_code text NOT NULL DEFAULT '',
   default_max_price_currency text NOT NULL DEFAULT '',
   default_max_price_amount text NOT NULL DEFAULT '',
+  policy_activation_ttl_seconds bigint NOT NULL DEFAULT 0,
+  policy_poll_interval_seconds bigint NOT NULL DEFAULT 0,
+  policy_cancel_allowed_after_seconds bigint NOT NULL DEFAULT 0,
+  policy_early_cancel_retry_after_seconds bigint NOT NULL DEFAULT 0,
+  policy_cancel_allowed_until_seconds bigint NOT NULL DEFAULT 0,
   capabilities jsonb NOT NULL DEFAULT '{}',
   labels jsonb NOT NULL DEFAULT '{}',
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -78,6 +83,11 @@ CREATE TABLE IF NOT EXISTS sms_provider_configs (
 );
 CREATE INDEX IF NOT EXISTS idx_sms_provider_configs_enabled
   ON sms_provider_configs(provider_key, enabled, updated_at DESC);
+ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_activation_ttl_seconds bigint NOT NULL DEFAULT 0;
+ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_poll_interval_seconds bigint NOT NULL DEFAULT 0;
+ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_cancel_allowed_after_seconds bigint NOT NULL DEFAULT 0;
+ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_early_cancel_retry_after_seconds bigint NOT NULL DEFAULT 0;
+ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_cancel_allowed_until_seconds bigint NOT NULL DEFAULT 0;
 `)
 	return err
 }
@@ -97,14 +107,18 @@ func (s *PostgresProviderConfigStore) UpsertProviderConfig(ctx context.Context, 
 	}
 	target := config.GetDefaultTarget()
 	maxPrice := target.GetMaxPrice()
+	policy := providerPolicyFromConfig(config, defaultProviderPolicy(config.GetProviderKey())).WithDefaults()
 	row := s.pool.QueryRow(ctx, `
 INSERT INTO sms_provider_configs (
   provider_config_id, provider_key, display_name, enabled, api_endpoint,
   credential_secret, credential_secret_ref, proxy_ref, http_proxy,
   upstream_service_key, provider_country_id,
   default_application_key, default_country_iso2, default_country_calling_code,
-  default_max_price_currency, default_max_price_amount, capabilities, labels
-) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+  default_max_price_currency, default_max_price_amount,
+  policy_activation_ttl_seconds, policy_poll_interval_seconds,
+  policy_cancel_allowed_after_seconds, policy_early_cancel_retry_after_seconds,
+  policy_cancel_allowed_until_seconds, capabilities, labels
+) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
 ON CONFLICT (provider_config_id) DO UPDATE SET
   provider_key = EXCLUDED.provider_key,
   display_name = EXCLUDED.display_name,
@@ -121,6 +135,11 @@ ON CONFLICT (provider_config_id) DO UPDATE SET
   default_country_calling_code = EXCLUDED.default_country_calling_code,
   default_max_price_currency = EXCLUDED.default_max_price_currency,
   default_max_price_amount = EXCLUDED.default_max_price_amount,
+  policy_activation_ttl_seconds = EXCLUDED.policy_activation_ttl_seconds,
+  policy_poll_interval_seconds = EXCLUDED.policy_poll_interval_seconds,
+  policy_cancel_allowed_after_seconds = EXCLUDED.policy_cancel_allowed_after_seconds,
+  policy_early_cancel_retry_after_seconds = EXCLUDED.policy_early_cancel_retry_after_seconds,
+  policy_cancel_allowed_until_seconds = EXCLUDED.policy_cancel_allowed_until_seconds,
   capabilities = EXCLUDED.capabilities,
   labels = EXCLUDED.labels,
   updated_at = now()
@@ -129,7 +148,10 @@ ON CONFLICT (provider_config_id) DO UPDATE SET
 		config.GetCredentialSecret(), config.GetCredentialSecretRef(), config.GetProxyRef(), config.GetHttpProxy(),
 		config.GetUpstreamServiceKey(), config.GetProviderCountryId(),
 		target.GetApplicationKey(), target.GetCountryIso2(), target.GetCountryCallingCode(),
-		maxPrice.GetCurrencyCode(), maxPrice.GetAmountDecimal(), capabilities, labels,
+		maxPrice.GetCurrencyCode(), maxPrice.GetAmountDecimal(),
+		durationSeconds(policy.ActivationTTL), durationSeconds(policy.PollInterval),
+		durationSeconds(policy.CancelAllowedAfter), durationSeconds(policy.EarlyCancelRetryAfter),
+		durationSeconds(policy.CancelAllowedUntil), capabilities, labels,
 	)
 	return scanProviderConfig(row)
 }
@@ -242,6 +264,7 @@ func (s *PostgresProviderConfigStore) normalizeForSave(ctx context.Context, inpu
 	if config.GetCapabilities() == nil {
 		config.Capabilities = defaultProviderCapabilities(config.GetProviderKey())
 	}
+	config.Policy = providerPolicyToProto(providerPolicyFromConfig(config, defaultProviderPolicy(config.GetProviderKey())))
 	config.Labels = normalizeLabels(config.GetLabels())
 	return config, nil
 }
@@ -253,7 +276,10 @@ func scanProviderConfig(row pgx.Row) (*smsinternalv1.SmsProviderConfig, error) {
 		&config.credentialSecret, &config.credentialSecretRef, &config.proxyRef, &config.httpProxy,
 		&config.upstreamServiceKey, &config.providerCountryID,
 		&config.defaultApplicationKey, &config.defaultCountryISO2, &config.defaultCountryCallingCode,
-		&config.defaultMaxPriceCurrency, &config.defaultMaxPriceAmount, &config.capabilities, &config.labels,
+		&config.defaultMaxPriceCurrency, &config.defaultMaxPriceAmount,
+		&config.policyActivationTTLSeconds, &config.policyPollIntervalSeconds,
+		&config.policyCancelAllowedAfterSeconds, &config.policyEarlyCancelRetryAfterSeconds,
+		&config.policyCancelAllowedUntilSeconds, &config.capabilities, &config.labels,
 		&config.createdAt, &config.updatedAt,
 	); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -265,26 +291,31 @@ func scanProviderConfig(row pgx.Row) (*smsinternalv1.SmsProviderConfig, error) {
 }
 
 type providerConfigRecord struct {
-	id                        string
-	providerKey               string
-	displayName               string
-	enabled                   bool
-	apiEndpoint               string
-	credentialSecret          string
-	credentialSecretRef       string
-	proxyRef                  string
-	httpProxy                 string
-	upstreamServiceKey        string
-	providerCountryID         string
-	defaultApplicationKey     string
-	defaultCountryISO2        string
-	defaultCountryCallingCode string
-	defaultMaxPriceCurrency   string
-	defaultMaxPriceAmount     string
-	capabilities              []byte
-	labels                    []byte
-	createdAt                 time.Time
-	updatedAt                 time.Time
+	id                                 string
+	providerKey                        string
+	displayName                        string
+	enabled                            bool
+	apiEndpoint                        string
+	credentialSecret                   string
+	credentialSecretRef                string
+	proxyRef                           string
+	httpProxy                          string
+	upstreamServiceKey                 string
+	providerCountryID                  string
+	defaultApplicationKey              string
+	defaultCountryISO2                 string
+	defaultCountryCallingCode          string
+	defaultMaxPriceCurrency            string
+	defaultMaxPriceAmount              string
+	policyActivationTTLSeconds         int64
+	policyPollIntervalSeconds          int64
+	policyCancelAllowedAfterSeconds    int64
+	policyEarlyCancelRetryAfterSeconds int64
+	policyCancelAllowedUntilSeconds    int64
+	capabilities                       []byte
+	labels                             []byte
+	createdAt                          time.Time
+	updatedAt                          time.Time
 }
 
 func (r providerConfigRecord) toProto() *smsinternalv1.SmsProviderConfig {
@@ -314,6 +345,7 @@ func (r providerConfigRecord) toProto() *smsinternalv1.SmsProviderConfig {
 			},
 		},
 		Capabilities:        capabilities,
+		Policy:              r.policyToProto(),
 		Labels:              labels,
 		CredentialSecretSet: r.credentialSecret != "",
 		CreatedAt:           timestamppb.New(r.createdAt),
@@ -321,12 +353,35 @@ func (r providerConfigRecord) toProto() *smsinternalv1.SmsProviderConfig {
 	}
 }
 
+func (r providerConfigRecord) policyToProto() *smsinternalv1.SmsProviderPolicy {
+	policy := defaultProviderPolicy(r.providerKey)
+	if r.policyActivationTTLSeconds > 0 {
+		policy.ActivationTTL = time.Duration(r.policyActivationTTLSeconds) * time.Second
+	}
+	if r.policyPollIntervalSeconds > 0 {
+		policy.PollInterval = time.Duration(r.policyPollIntervalSeconds) * time.Second
+	}
+	if r.policyCancelAllowedAfterSeconds > 0 {
+		policy.CancelAllowedAfter = time.Duration(r.policyCancelAllowedAfterSeconds) * time.Second
+	}
+	if r.policyEarlyCancelRetryAfterSeconds > 0 {
+		policy.EarlyCancelRetryAfter = time.Duration(r.policyEarlyCancelRetryAfterSeconds) * time.Second
+	}
+	if r.policyCancelAllowedUntilSeconds > 0 {
+		policy.CancelAllowedUntil = time.Duration(r.policyCancelAllowedUntilSeconds) * time.Second
+	}
+	return providerPolicyToProto(policy)
+}
+
 func providerConfigColumns() string {
 	return `provider_config_id, provider_key, display_name, enabled, api_endpoint,
 credential_secret, credential_secret_ref, proxy_ref, http_proxy,
 upstream_service_key, provider_country_id,
 default_application_key, default_country_iso2, default_country_calling_code,
-default_max_price_currency, default_max_price_amount, capabilities, labels,
+default_max_price_currency, default_max_price_amount,
+policy_activation_ttl_seconds, policy_poll_interval_seconds,
+policy_cancel_allowed_after_seconds, policy_early_cancel_retry_after_seconds,
+policy_cancel_allowed_until_seconds, capabilities, labels,
 created_at, updated_at`
 }
 
@@ -361,6 +416,13 @@ func normalizeLabels(labels map[string]string) map[string]string {
 		}
 	}
 	return out
+}
+
+func durationSeconds(value time.Duration) int64 {
+	if value <= 0 {
+		return 0
+	}
+	return int64(value / time.Second)
 }
 
 func defaultProviderCapabilities(providerKey string) *smsinternalv1.SmsProviderCapabilities {

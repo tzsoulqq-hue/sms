@@ -47,9 +47,9 @@ func New(config Config, httpClient handlerapi.HTTPDoer) (*Client, error) {
 		ref:    config.Ref,
 		userID: config.UserID,
 		policy: core.ProviderPolicy{
-			ActivationTTL:      20 * time.Minute,
-			PollInterval:       5 * time.Second,
-			CancelAllowedAfter: 2 * time.Minute,
+			ActivationTTL:         25 * time.Minute,
+			PollInterval:          5 * time.Second,
+			EarlyCancelRetryAfter: 2 * time.Minute,
 		},
 	}, nil
 }

@@ -4,6 +4,7 @@ package byte.v.forge.sms.internal.v1;
 
 import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 import "byte/v/forge/contracts/sms/v1/sms.proto";
 
 option csharp_namespace = "ByteVForge.Sms.Internal.V1";
@@ -88,9 +89,18 @@ message SmsProviderConfig {
   string credential_secret = 12;
   string http_proxy = 13;
   bool credential_secret_set = 14;
+  SmsProviderPolicy policy = 15;
   map<string, string> labels = 20;
   google.protobuf.Timestamp created_at = 30;
   google.protobuf.Timestamp updated_at = 31;
+}
+
+message SmsProviderPolicy {
+  google.protobuf.Duration activation_ttl = 1;
+  google.protobuf.Duration poll_interval = 2;
+  google.protobuf.Duration cancel_allowed_after = 3;
+  google.protobuf.Duration early_cancel_retry_after = 4;
+  google.protobuf.Duration cancel_allowed_until = 5;
 }
 
 message SmsProviderCapabilities {

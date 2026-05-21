@@ -212,6 +212,34 @@ LIMIT $2
 	return out, rows.Err()
 }
 
+func (s *PostgresActivationStore) ListCancelRequested(ctx context.Context, now time.Time, limit int) ([]core.Activation, error) {
+	if limit <= 0 {
+		limit = 100
+	}
+	rows, err := s.pool.Query(ctx, `
+SELECT `+activationColumns()+`
+FROM sms_activations
+WHERE labels ->> $1 = 'true'
+  AND status NOT IN ('completed', 'canceled', 'expired', 'failed')
+  AND (cancel_allowed_at IS NULL OR cancel_allowed_at <= $2)
+ORDER BY cancel_allowed_at ASC NULLS FIRST, updated_at ASC, activation_id ASC
+LIMIT $3
+`, cancelRequestedLabel, now, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []core.Activation{}
+	for rows.Next() {
+		activation, err := scanActivation(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, activation)
+	}
+	return out, rows.Err()
+}
+
 func activationValues(activation core.Activation, labels []byte) []any {
 	codeValue, codeMessage, codeReceivedAt := codeFields(activation.Code)
 	errorCode, errorMessage, errorRetryable := errorFields(activation.LastError)

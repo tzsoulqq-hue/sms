@@ -500,7 +500,7 @@ type SmsActivation struct {
 	UpdatedAt                *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	LastError                *SmsError              `protobuf:"bytes,10,opt,name=last_error,json=lastError,proto3" json:"last_error,omitempty"`
 	CanRequestAdditionalCode bool                   `protobuf:"varint,11,opt,name=can_request_additional_code,json=canRequestAdditionalCode,proto3" json:"can_request_additional_code,omitempty"`
-	// Earliest provider-allowed cancellation time. For SMSBower and HeroSMS this is normally acquired_at + 2 minutes.
+	// Earliest known or scheduled provider cancellation retry time.
 	CancelAllowedAt *timestamppb.Timestamp `protobuf:"bytes,12,opt,name=cancel_allowed_at,json=cancelAllowedAt,proto3" json:"cancel_allowed_at,omitempty"`
 	Labels          map[string]string      `protobuf:"bytes,20,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields   protoimpl.UnknownFields

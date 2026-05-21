@@ -127,10 +127,11 @@ const (
 )
 
 type ProviderPolicy struct {
-	ActivationTTL      time.Duration
-	PollInterval       time.Duration
-	CancelAllowedAfter time.Duration
-	CancelAllowedUntil time.Duration
+	ActivationTTL         time.Duration
+	PollInterval          time.Duration
+	CancelAllowedAfter    time.Duration
+	EarlyCancelRetryAfter time.Duration
+	CancelAllowedUntil    time.Duration
 }
 
 func (p ProviderPolicy) WithDefaults() ProviderPolicy {

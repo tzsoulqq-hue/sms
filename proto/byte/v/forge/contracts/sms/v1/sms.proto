@@ -111,7 +111,7 @@ message SmsActivation {
   google.protobuf.Timestamp updated_at = 9;
   SmsError last_error = 10;
   bool can_request_additional_code = 11;
-  // Earliest provider-allowed cancellation time. For SMSBower and HeroSMS this is normally acquired_at + 2 minutes.
+  // Earliest known or scheduled provider cancellation retry time.
   google.protobuf.Timestamp cancel_allowed_at = 12;
   map<string, string> labels = 20;
 }

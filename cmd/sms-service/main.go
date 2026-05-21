@@ -50,6 +50,7 @@ func main() {
 		app.SystemClock{},
 		app.RandomIDGenerator{},
 	)
+	activationService.StartCancelScheduler(ctx, 30*time.Second)
 	adminService := app.NewProviderAdminService(configStore, activationService, activationStore, httpTimeout)
 
 	listener, err := net.Listen("tcp", cfg.ListenAddr)

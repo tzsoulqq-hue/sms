@@ -15,6 +15,7 @@ import (
 	"github.com/byte-v-forge/sms/internal/providers/fivesim"
 	"github.com/byte-v-forge/sms/internal/providers/herosms"
 	"github.com/byte-v-forge/sms/internal/providers/smsbower"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 type ProviderConfigStore interface {
@@ -101,6 +102,7 @@ type ConfiguredProvider struct {
 	configs    ProviderConfigStore
 	timeout    time.Duration
 	activation sync.Map
+	policy     sync.Map
 }
 
 func NewConfiguredProvider(key string, configs ProviderConfigStore, timeout time.Duration) *ConfiguredProvider {
@@ -112,7 +114,7 @@ func (p *ConfiguredProvider) Key() string {
 }
 
 func (p *ConfiguredProvider) Policy() core.ProviderPolicy {
-	return core.ProviderPolicy{ActivationTTL: 20 * time.Minute, PollInterval: 5 * time.Second, CancelAllowedAfter: 2 * time.Minute}
+	return defaultProviderPolicy(p.key)
 }
 
 func (p *ConfiguredProvider) AcquireNumber(ctx context.Context, request core.ProviderAcquireRequest) (core.ProviderActivation, error) {
@@ -124,9 +126,14 @@ func (p *ConfiguredProvider) AcquireNumber(ctx context.Context, request core.Pro
 	if err != nil {
 		return core.ProviderActivation{}, err
 	}
+	policy := providerPolicyFromConfig(config, provider.Policy())
 	activation, err := provider.AcquireNumber(ctx, request)
 	if err == nil && activation.UpstreamActivationID != "" {
 		p.activation.Store(activation.UpstreamActivationID, config.GetProviderConfigId())
+		p.policy.Store(activation.UpstreamActivationID, policy)
+		if activation.ExpiresAt.IsZero() && !activation.AcquiredAt.IsZero() && policy.ActivationTTL > 0 {
+			activation.ExpiresAt = activation.AcquiredAt.Add(policy.ActivationTTL)
+		}
 	}
 	return activation, err
 }
@@ -156,6 +163,43 @@ func (p *ConfiguredProvider) BindActivationConfig(upstreamActivationID string, p
 	p.activation.Store(upstreamActivationID, providerConfigID)
 }
 
+func (p *ConfiguredProvider) PolicyForActivation(upstreamActivationID string) core.ProviderPolicy {
+	upstreamActivationID = strings.TrimSpace(upstreamActivationID)
+	if upstreamActivationID != "" {
+		if value, ok := p.policy.Load(upstreamActivationID); ok {
+			if policy, ok := value.(core.ProviderPolicy); ok {
+				return policy
+			}
+		}
+	}
+	return p.Policy()
+}
+
+func (p *ConfiguredProvider) LoadPolicyForActivation(ctx context.Context, upstreamActivationID string, providerConfigID string) core.ProviderPolicy {
+	upstreamActivationID = strings.TrimSpace(upstreamActivationID)
+	providerConfigID = strings.TrimSpace(providerConfigID)
+	if upstreamActivationID != "" {
+		if value, ok := p.policy.Load(upstreamActivationID); ok {
+			if policy, ok := value.(core.ProviderPolicy); ok {
+				return policy
+			}
+		}
+	}
+	if providerConfigID == "" {
+		return p.Policy()
+	}
+	config, err := p.configs.GetProviderConfig(ctx, providerConfigID)
+	if err != nil {
+		return p.Policy()
+	}
+	policy := providerPolicyFromConfig(config, defaultProviderPolicy(config.GetProviderKey()))
+	if upstreamActivationID != "" {
+		p.activation.Store(upstreamActivationID, providerConfigID)
+		p.policy.Store(upstreamActivationID, policy)
+	}
+	return policy
+}
+
 func (p *ConfiguredProvider) GetBalance(ctx context.Context) (core.Money, error) {
 	config, err := p.configs.GetEnabledProviderConfig(ctx, p.key, core.Target{})
 	if err != nil {
@@ -183,14 +227,22 @@ func (p *ConfiguredProvider) providerForActivation(ctx context.Context, upstream
 			if err != nil {
 				return nil, err
 			}
-			return providerFromConfig(config, p.timeout)
+			provider, err := providerFromConfig(config, p.timeout)
+			if err == nil {
+				p.policy.Store(upstreamActivationID, providerPolicyFromConfig(config, provider.Policy()))
+			}
+			return provider, err
 		}
 	}
 	config, err := p.configs.GetEnabledProviderConfig(ctx, p.key, core.Target{})
 	if err != nil {
 		return nil, err
 	}
-	return providerFromConfig(config, p.timeout)
+	provider, err := providerFromConfig(config, p.timeout)
+	if err == nil {
+		p.policy.Store(upstreamActivationID, providerPolicyFromConfig(config, provider.Policy()))
+	}
+	return provider, err
 }
 
 func providerFromConfig(config *smsinternalv1.SmsProviderConfig, timeout time.Duration) (core.Provider, error) {
@@ -312,6 +364,73 @@ func firstNonEmptyString(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func defaultProviderPolicy(providerKey string) core.ProviderPolicy {
+	switch normalizeProviderKey(providerKey) {
+	case smsbower.ProviderKey:
+		return core.ProviderPolicy{
+			ActivationTTL:         25 * time.Minute,
+			PollInterval:          5 * time.Second,
+			EarlyCancelRetryAfter: 2 * time.Minute,
+		}
+	case herosms.ProviderKey:
+		return core.ProviderPolicy{
+			ActivationTTL:      20 * time.Minute,
+			PollInterval:       5 * time.Second,
+			CancelAllowedAfter: 2 * time.Minute,
+		}
+	default:
+		return core.ProviderPolicy{ActivationTTL: 20 * time.Minute, PollInterval: 5 * time.Second}
+	}
+}
+
+func providerPolicyFromConfig(config *smsinternalv1.SmsProviderConfig, fallback core.ProviderPolicy) core.ProviderPolicy {
+	policy := fallback.WithDefaults()
+	if config == nil || config.GetPolicy() == nil {
+		return policy
+	}
+	if value := protoDuration(config.GetPolicy().GetActivationTtl()); value > 0 {
+		policy.ActivationTTL = value
+	}
+	if value := protoDuration(config.GetPolicy().GetPollInterval()); value > 0 {
+		policy.PollInterval = value
+	}
+	if value := protoDuration(config.GetPolicy().GetCancelAllowedAfter()); value > 0 {
+		policy.CancelAllowedAfter = value
+	}
+	if value := protoDuration(config.GetPolicy().GetEarlyCancelRetryAfter()); value > 0 {
+		policy.EarlyCancelRetryAfter = value
+	}
+	if value := protoDuration(config.GetPolicy().GetCancelAllowedUntil()); value > 0 {
+		policy.CancelAllowedUntil = value
+	}
+	return policy
+}
+
+func providerPolicyToProto(policy core.ProviderPolicy) *smsinternalv1.SmsProviderPolicy {
+	policy = policy.WithDefaults()
+	return &smsinternalv1.SmsProviderPolicy{
+		ActivationTtl:         durationpb.New(policy.ActivationTTL),
+		PollInterval:          durationpb.New(policy.PollInterval),
+		CancelAllowedAfter:    durationOrNil(policy.CancelAllowedAfter),
+		EarlyCancelRetryAfter: durationOrNil(policy.EarlyCancelRetryAfter),
+		CancelAllowedUntil:    durationOrNil(policy.CancelAllowedUntil),
+	}
+}
+
+func protoDuration(value *durationpb.Duration) time.Duration {
+	if value == nil {
+		return 0
+	}
+	return value.AsDuration()
+}
+
+func durationOrNil(value time.Duration) *durationpb.Duration {
+	if value <= 0 {
+		return nil
+	}
+	return durationpb.New(value)
 }
 
 func validateRequestedProviderConfig(config *smsinternalv1.SmsProviderConfig, request core.RouteRequest) error {

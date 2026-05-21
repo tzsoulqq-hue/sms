@@ -2,10 +2,20 @@ package app
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/byte-v-forge/sms/internal/core"
 )
+
+const (
+	cancelRequestedLabel = "cancel_requested"
+	cancelRequestIDLabel = "cancel_request_id"
+)
+
+type cancelRequestedActivationStore interface {
+	ListCancelRequested(context.Context, time.Time, int) ([]core.Activation, error)
+}
 
 type ActivationService struct {
 	store     core.ActivationStore
@@ -78,7 +88,7 @@ func (s *ActivationService) AcquireNumber(ctx context.Context, cmd core.AcquireN
 	if acquiredAt.IsZero() {
 		acquiredAt = now
 	}
-	policy := provider.Policy().WithDefaults()
+	policy := providerPolicyForUpstreamActivation(provider, providerActivation.UpstreamActivationID).WithDefaults()
 	ttl := policy.ActivationTTL
 	if cmd.LeaseDuration > 0 && cmd.LeaseDuration < ttl {
 		ttl = cmd.LeaseDuration
@@ -183,7 +193,8 @@ func (s *ActivationService) WaitForCode(ctx context.Context, activationID string
 	if err != nil {
 		return core.Activation{}, nil, err
 	}
-	policy := provider.Policy().WithDefaults()
+	bindActivationProviderConfig(provider, activation)
+	policy := providerPolicyForActivation(ctx, provider, activation).WithDefaults()
 	if timeout <= 0 {
 		timeout = time.Until(activation.ExpiresAt)
 	}
@@ -227,11 +238,16 @@ func (s *ActivationService) CancelActivation(ctx context.Context, activationID, 
 	if err != nil {
 		return core.Activation{}, err
 	}
+	return s.cancelLoadedActivation(ctx, activation, requestID)
+}
+
+func (s *ActivationService) cancelLoadedActivation(ctx context.Context, activation core.Activation, requestID string) (core.Activation, error) {
 	provider, err := s.provider(activation.ProviderKey)
 	if err != nil {
 		return core.Activation{}, err
 	}
-	policy := provider.Policy().WithDefaults()
+	bindActivationProviderConfig(provider, activation)
+	policy := providerPolicyForActivation(ctx, provider, activation).WithDefaults()
 	now := s.clock.Now()
 	if activation.Status.IsFinal() {
 		return activation, core.NewError(core.CodeActivationAlreadyFinalized, "activation already finalized", false)
@@ -243,13 +259,32 @@ func (s *ActivationService) CancelActivation(ctx context.Context, activationID, 
 		return activation, core.NewError(core.CodeActivationExpired, "activation expired", false)
 	}
 	age := now.Sub(activation.AcquiredAt)
-	if age < policy.CancelAllowedAfter {
-		return activation, core.NewError(core.CodeCancelNotAllowed, "activation is too new to cancel", true)
+	if policy.CancelAllowedAfter > 0 && age < policy.CancelAllowedAfter {
+		return s.queueCancelRetry(ctx, activation, requestID, activation.AcquiredAt.Add(policy.CancelAllowedAfter))
 	}
 	if policy.CancelAllowedUntil > 0 && age > policy.CancelAllowedUntil {
 		return activation, core.NewError(core.CodeCancelNotAllowed, "activation is too old to cancel", false)
 	}
-	return s.applyAction(ctx, activationID, requestID, core.ActionCancelActivation, core.StatusCanceled)
+	if err := provider.SetStatus(ctx, activation.UpstreamActivationID, core.ActionCancelActivation); err != nil {
+		smsErr := asCoreError(err)
+		if shouldQueueEarlyCancelRetry(smsErr, policy) {
+			return s.queueCancelRetry(ctx, activation, requestID, earlyCancelRetryAt(activation, policy, now))
+		}
+		activation.LastError = smsErr
+		activation.UpdatedAt = now
+		activation.Labels = clearCancelRequested(activation.Labels)
+		_ = s.store.Update(ctx, activation)
+		return activation, err
+	}
+	activation.Status = core.StatusCanceled
+	activation.UpdatedAt = now
+	activation.LastError = nil
+	activation.CancelAllowedAt = time.Time{}
+	activation.Labels = clearCancelRequested(activation.Labels)
+	if err := s.store.Update(ctx, activation); err != nil {
+		return core.Activation{}, err
+	}
+	return activation, nil
 }
 
 func (s *ActivationService) applyAction(ctx context.Context, activationID, _ string, action core.ProviderAction, next core.ActivationStatus) (core.Activation, error) {
@@ -288,6 +323,137 @@ func bindActivationProviderConfig(provider core.Provider, activation core.Activa
 		return
 	}
 	configured.BindActivationConfig(activation.UpstreamActivationID, activation.ProviderConfigID)
+}
+
+func providerPolicyForActivation(ctx context.Context, provider core.Provider, activation core.Activation) core.ProviderPolicy {
+	if configured, ok := provider.(*ConfiguredProvider); ok {
+		return configured.LoadPolicyForActivation(ctx, activation.UpstreamActivationID, activation.ProviderConfigID)
+	}
+	return providerPolicyForUpstreamActivation(provider, activation.UpstreamActivationID)
+}
+
+func providerPolicyForUpstreamActivation(provider core.Provider, upstreamActivationID string) core.ProviderPolicy {
+	if configured, ok := provider.(*ConfiguredProvider); ok {
+		return configured.PolicyForActivation(upstreamActivationID)
+	}
+	return provider.Policy()
+}
+
+func shouldQueueEarlyCancelRetry(err *core.Error, policy core.ProviderPolicy) bool {
+	return err != nil && err.Code == core.CodeCancelNotAllowed && err.Retryable && policy.EarlyCancelRetryAfter > 0
+}
+
+func earlyCancelRetryAt(activation core.Activation, policy core.ProviderPolicy, now time.Time) time.Time {
+	if !activation.AcquiredAt.IsZero() && policy.EarlyCancelRetryAfter > 0 {
+		retryAt := activation.AcquiredAt.Add(policy.EarlyCancelRetryAfter)
+		if retryAt.After(now) {
+			return retryAt
+		}
+	}
+	delay := policy.PollInterval
+	if delay <= 0 {
+		delay = 5 * time.Second
+	}
+	return now.Add(delay)
+}
+
+func (s *ActivationService) queueCancelRetry(ctx context.Context, activation core.Activation, requestID string, retryAt time.Time) (core.Activation, error) {
+	if retryAt.IsZero() {
+		retryAt = s.clock.Now().Add(5 * time.Second)
+	}
+	if !retryAt.After(s.clock.Now()) {
+		retryAt = s.clock.Now().Add(5 * time.Second)
+	}
+	activation.UpdatedAt = s.clock.Now()
+	activation.CancelAllowedAt = retryAt
+	activation.LastError = nil
+	activation.Labels = markCancelRequested(activation.Labels, requestID)
+	if err := s.store.Update(ctx, activation); err != nil {
+		return core.Activation{}, err
+	}
+	s.scheduleCancelAttempt(activation.ID, retryAt)
+	return activation, nil
+}
+
+func markCancelRequested(labels map[string]string, requestID string) map[string]string {
+	out := cloneMap(labels)
+	if out == nil {
+		out = map[string]string{}
+	}
+	out[cancelRequestedLabel] = "true"
+	if requestID != "" {
+		out[cancelRequestIDLabel] = requestID
+	}
+	return out
+}
+
+func clearCancelRequested(labels map[string]string) map[string]string {
+	out := cloneMap(labels)
+	if out == nil {
+		return nil
+	}
+	delete(out, cancelRequestedLabel)
+	delete(out, cancelRequestIDLabel)
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+func (s *ActivationService) scheduleCancelAttempt(activationID string, retryAt time.Time) {
+	delay := time.Until(retryAt)
+	if delay < time.Second {
+		delay = time.Second
+	}
+	go func() {
+		timer := time.NewTimer(delay)
+		defer timer.Stop()
+		<-timer.C
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if _, err := s.CancelActivation(ctx, activationID, s.ids.NewID("req_")); err != nil {
+			log.Printf("scheduled sms activation cancel failed: activation_id=%s error=%v", activationID, err)
+		}
+	}()
+}
+
+func (s *ActivationService) StartCancelScheduler(ctx context.Context, interval time.Duration) {
+	if _, ok := s.store.(cancelRequestedActivationStore); !ok {
+		return
+	}
+	if interval <= 0 {
+		interval = 30 * time.Second
+	}
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		s.runDueCancelRequests(ctx)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				s.runDueCancelRequests(ctx)
+			}
+		}
+	}()
+}
+
+func (s *ActivationService) runDueCancelRequests(ctx context.Context) {
+	store, ok := s.store.(cancelRequestedActivationStore)
+	if !ok {
+		return
+	}
+	activations, err := store.ListCancelRequested(ctx, s.clock.Now(), 100)
+	if err != nil {
+		log.Printf("list scheduled sms activation cancels failed: %v", err)
+		return
+	}
+	for _, activation := range activations {
+		if _, err := s.cancelLoadedActivation(ctx, activation, s.ids.NewID("req_")); err != nil {
+			log.Printf("scheduled sms activation cancel failed: activation_id=%s error=%v", activation.ID, err)
+		}
+	}
 }
 
 func (s *ActivationService) expireIfNeeded(ctx context.Context, activation *core.Activation) error {
