@@ -63,9 +63,9 @@ func (c *Client) Policy() core.ProviderPolicy {
 }
 
 func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquireRequest) (core.ProviderActivation, error) {
-	service := firstNonEmpty(request.Route.UpstreamServiceKey, request.Target.ApplicationKey)
-	if service == "" {
-		return core.ProviderActivation{}, core.NewError(core.CodeValidationFailed, "smsbower service is required", false)
+	service, err := c.serviceForRoute(ctx, request)
+	if err != nil {
+		return core.ProviderActivation{}, err
 	}
 	country, err := c.countryForRoute(ctx, request)
 	if err != nil {
@@ -139,6 +139,52 @@ func (c *Client) GetBalance(ctx context.Context) (core.Money, error) {
 		return core.Money{}, handlerapi.MapTextError(result)
 	}
 	return core.Money{AmountDecimal: strings.TrimPrefix(result, prefix)}, nil
+}
+
+func (c *Client) serviceForRoute(ctx context.Context, request core.ProviderAcquireRequest) (string, error) {
+	explicit := strings.TrimSpace(request.Route.UpstreamServiceKey)
+	target := strings.TrimSpace(request.Target.ApplicationKey)
+	if explicit != "" && explicit != target {
+		return explicit, nil
+	}
+	candidate := firstNonEmpty(explicit, target)
+	if candidate == "" {
+		return "", core.NewError(core.CodeValidationFailed, "smsbower service is required", false)
+	}
+	applications, err := c.ListApplications(ctx)
+	if err != nil {
+		return "", err
+	}
+	if service := matchService(candidate, applications); service != "" {
+		return service, nil
+	}
+	return "", core.NewError(core.CodeRouteNotFound, "smsbower service not found for sms target", false)
+}
+
+func matchService(candidate string, applications []ApplicationOffer) string {
+	normalized := normalizeApplicationAlias(candidate)
+	for _, app := range applications {
+		if normalizeApplicationAlias(app.UpstreamServiceKey) == normalized || normalizeApplicationAlias(app.ApplicationKey) == normalized {
+			return app.UpstreamServiceKey
+		}
+	}
+	for _, app := range applications {
+		display := normalizeApplicationAlias(app.DisplayName)
+		if display != "" && (display == normalized || strings.Contains(display, normalized)) {
+			return app.UpstreamServiceKey
+		}
+	}
+	return ""
+}
+
+func normalizeApplicationAlias(value string) string {
+	var out strings.Builder
+	for _, r := range strings.ToLower(strings.TrimSpace(value)) {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			out.WriteRune(r)
+		}
+	}
+	return out.String()
 }
 
 func (c *Client) countryForRoute(ctx context.Context, request core.ProviderAcquireRequest) (string, error) {

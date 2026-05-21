@@ -42,10 +42,11 @@ func NewActivationService(
 }
 
 func (s *ActivationService) AcquireNumber(ctx context.Context, cmd core.AcquireNumberCommand) (core.Activation, error) {
-	if cmd.Target.ApplicationKey == "" {
-		return core.Activation{}, core.NewError(core.CodeValidationFailed, "application_key is required", false)
+	if cmd.ProfileKey == "" && cmd.Target.ApplicationKey == "" {
+		return core.Activation{}, core.NewError(core.CodeValidationFailed, "profile_key or application_key is required", false)
 	}
 	route, err := s.routes.Resolve(ctx, core.RouteRequest{
+		ProfileKey:       cmd.ProfileKey,
 		Target:           cmd.Target,
 		ProviderKey:      cmd.ProviderKey,
 		ProviderConfigID: cmd.ProviderConfigID,
@@ -312,6 +313,9 @@ func cloneMap(in map[string]string) map[string]string {
 }
 
 func withRouteTargetDefaults(target core.Target, route core.Route) core.Target {
+	if target.ApplicationKey == "" {
+		target.ApplicationKey = route.ApplicationKey
+	}
 	if target.CountryISO2 == "" {
 		target.CountryISO2 = route.CountryISO2
 	}

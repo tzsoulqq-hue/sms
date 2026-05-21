@@ -124,6 +124,8 @@ message AcquireNumberRequest {
   string provider_config_id = 4;
   // Optional provider key, for example "herosms" or "smsbower".
   string provider_key = 5;
+  // Provider-neutral route profile key. When set, SMS resolves provider selection internally.
+  string profile_key = 6;
   map<string, string> labels = 20;
 }
 

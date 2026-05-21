@@ -1,5 +1,5 @@
 import type { DecimalMoney } from '@/proto/byte/v/forge/contracts/sms/v1/sms';
-import type { SmsProviderConfig } from '@/proto/byte/v/forge/sms/internal/v1/sms_internal';
+import { SmsRouteSelectionStrategy, type SmsProviderConfig, type SmsRouteCandidate, type SmsRouteProfile } from '@/proto/byte/v/forge/sms/internal/v1/sms_internal';
 
 export function newSmsProviderConfig(): SmsProviderConfig {
   return {
@@ -23,9 +23,49 @@ export function newSmsProviderConfig(): SmsProviderConfig {
   };
 }
 
+export function newSmsRouteProfile(): SmsRouteProfile {
+  return {
+    profile_key: '',
+    display_name: '',
+    enabled: true,
+    selection_strategy: SmsRouteSelectionStrategy.SMS_ROUTE_SELECTION_STRATEGY_PRIORITY,
+    preferred_provider_key: '',
+    default_target: { application_key: '', country_iso2: '', country_calling_code: '', max_price: undefined },
+    routes: [newSmsRouteCandidate()],
+    labels: {},
+    created_at: undefined,
+    updated_at: undefined
+  };
+}
+
+export function newSmsRouteCandidate(providerKey = 'smsbower'): SmsRouteCandidate {
+  return {
+    route_id: '',
+    enabled: true,
+    priority: 10,
+    provider_config_id: '',
+    provider_key: providerKey,
+    upstream_service_key: '',
+    provider_country_id: '',
+    target: { application_key: '', country_iso2: '', country_calling_code: '', max_price: undefined },
+    min_price: undefined,
+    max_price: undefined,
+    provider_options: {}
+  };
+}
+
 export function moneyText(money?: DecimalMoney) {
   if (!money?.amount_decimal) return '-';
   return [money.currency_code, money.amount_decimal].filter(Boolean).join(' ');
+}
+
+export function strategyText(strategy?: SmsRouteSelectionStrategy) {
+  const labels: Record<string, string> = {
+    [SmsRouteSelectionStrategy.SMS_ROUTE_SELECTION_STRATEGY_PRIORITY]: '按优先级',
+    [SmsRouteSelectionStrategy.SMS_ROUTE_SELECTION_STRATEGY_LOWEST_PRICE]: '最低价',
+    [SmsRouteSelectionStrategy.SMS_ROUTE_SELECTION_STRATEGY_SPECIFIED_PROVIDER]: '指定Provider'
+  };
+  return labels[strategy || SmsRouteSelectionStrategy.SMS_ROUTE_SELECTION_STRATEGY_PRIORITY] || '-';
 }
 
 export function remainingText(expiresAt?: string) {

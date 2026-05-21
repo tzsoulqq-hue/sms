@@ -48,6 +48,45 @@ func (s *ProviderAdminServer) DeleteProviderConfig(ctx context.Context, request 
 	return &smsinternalv1.DeleteProviderConfigResponse{}, nil
 }
 
+func (s *ProviderAdminServer) ListRouteOptions(ctx context.Context, request *smsinternalv1.ListRouteOptionsRequest) (*smsinternalv1.ListRouteOptionsResponse, error) {
+	options, err := s.service.ListRouteOptions(ctx, request.GetProviderConfigId(), request.GetProviderKey())
+	if err != nil {
+		return &smsinternalv1.ListRouteOptionsResponse{Error: toProviderError(err)}, nil
+	}
+	return &smsinternalv1.ListRouteOptionsResponse{Options: options}, nil
+}
+
+func (s *ProviderAdminServer) UpsertRouteProfile(ctx context.Context, request *smsinternalv1.UpsertRouteProfileRequest) (*smsinternalv1.UpsertRouteProfileResponse, error) {
+	profile, err := s.service.UpsertRouteProfile(ctx, request.GetProfile())
+	if err != nil {
+		return &smsinternalv1.UpsertRouteProfileResponse{Error: toProviderError(err)}, nil
+	}
+	return &smsinternalv1.UpsertRouteProfileResponse{Profile: profile}, nil
+}
+
+func (s *ProviderAdminServer) GetRouteProfile(ctx context.Context, request *smsinternalv1.GetRouteProfileRequest) (*smsinternalv1.GetRouteProfileResponse, error) {
+	profile, err := s.service.GetRouteProfile(ctx, request.GetProfileKey())
+	if err != nil {
+		return &smsinternalv1.GetRouteProfileResponse{Error: toProviderError(err)}, nil
+	}
+	return &smsinternalv1.GetRouteProfileResponse{Profile: profile}, nil
+}
+
+func (s *ProviderAdminServer) ListRouteProfiles(ctx context.Context, request *smsinternalv1.ListRouteProfilesRequest) (*smsinternalv1.ListRouteProfilesResponse, error) {
+	profiles, err := s.service.ListRouteProfiles(ctx, request.GetIncludeDisabled())
+	if err != nil {
+		return &smsinternalv1.ListRouteProfilesResponse{Error: toProviderError(err)}, nil
+	}
+	return &smsinternalv1.ListRouteProfilesResponse{Profiles: profiles}, nil
+}
+
+func (s *ProviderAdminServer) DeleteRouteProfile(ctx context.Context, request *smsinternalv1.DeleteRouteProfileRequest) (*smsinternalv1.DeleteRouteProfileResponse, error) {
+	if err := s.service.DeleteRouteProfile(ctx, request.GetProfileKey()); err != nil {
+		return &smsinternalv1.DeleteRouteProfileResponse{Error: toProviderError(err)}, nil
+	}
+	return &smsinternalv1.DeleteRouteProfileResponse{}, nil
+}
+
 func (s *ProviderAdminServer) GetProviderBalance(ctx context.Context, request *smsinternalv1.GetProviderBalanceRequest) (*smsinternalv1.GetProviderBalanceResponse, error) {
 	balance, err := s.service.GetProviderBalance(ctx, request.GetProviderConfigId())
 	if err != nil {

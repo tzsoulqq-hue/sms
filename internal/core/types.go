@@ -159,6 +159,7 @@ type Route struct {
 }
 
 type RouteRequest struct {
+	ProfileKey       string
 	Target           Target
 	ProviderKey      string
 	ProviderConfigID string
@@ -166,6 +167,7 @@ type RouteRequest struct {
 
 type AcquireNumberCommand struct {
 	RequestID        string
+	ProfileKey       string
 	ProviderKey      string
 	ProviderConfigID string
 	Target           Target

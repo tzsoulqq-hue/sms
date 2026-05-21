@@ -22,6 +22,10 @@ type ProviderConfigStore interface {
 	GetProviderConfig(context.Context, string) (*smsinternalv1.SmsProviderConfig, error)
 	ListProviderConfigs(context.Context, bool, string) ([]*smsinternalv1.SmsProviderConfig, error)
 	DeleteProviderConfig(context.Context, string) error
+	UpsertRouteProfile(context.Context, *smsinternalv1.SmsRouteProfile) (*smsinternalv1.SmsRouteProfile, error)
+	GetRouteProfile(context.Context, string) (*smsinternalv1.SmsRouteProfile, error)
+	ListRouteProfiles(context.Context, bool) ([]*smsinternalv1.SmsRouteProfile, error)
+	DeleteRouteProfile(context.Context, string) error
 	GetEnabledProviderConfig(context.Context, string, core.Target) (*smsinternalv1.SmsProviderConfig, error)
 }
 
@@ -38,6 +42,9 @@ func NewProviderConfigRouteResolver(configs ProviderConfigStore) *ProviderConfig
 }
 
 func (r *ProviderConfigRouteResolver) Resolve(ctx context.Context, request core.RouteRequest) (core.Route, error) {
+	if strings.TrimSpace(request.ProfileKey) != "" {
+		return r.resolveProfile(ctx, request)
+	}
 	var config *smsinternalv1.SmsProviderConfig
 	var err error
 	if strings.TrimSpace(request.ProviderConfigID) != "" {
@@ -52,6 +59,41 @@ func (r *ProviderConfigRouteResolver) Resolve(ctx context.Context, request core.
 		return core.Route{}, err
 	}
 	return routeFromProviderConfig(config, request.Target), nil
+}
+
+func (r *ProviderConfigRouteResolver) resolveProfile(ctx context.Context, request core.RouteRequest) (core.Route, error) {
+	profile, err := r.configs.GetRouteProfile(ctx, request.ProfileKey)
+	if err != nil {
+		return core.Route{}, err
+	}
+	candidate, target, err := selectRouteCandidate(profile, request)
+	if err != nil {
+		return core.Route{}, err
+	}
+	config, err := r.configForCandidate(ctx, candidate, target)
+	if err != nil {
+		return core.Route{}, err
+	}
+	route := routeFromProviderConfig(config, target)
+	route.ApplicationKey = target.ApplicationKey
+	route.CountryISO2 = target.CountryISO2
+	route.CountryCallingCode = target.CountryCallingCode
+	applyRouteCandidate(candidate, &route)
+	return route, nil
+}
+
+func (r *ProviderConfigRouteResolver) configForCandidate(ctx context.Context, candidate *smsinternalv1.SmsRouteCandidate, target core.Target) (*smsinternalv1.SmsProviderConfig, error) {
+	if strings.TrimSpace(candidate.GetProviderConfigId()) != "" {
+		config, err := r.configs.GetProviderConfig(ctx, candidate.GetProviderConfigId())
+		if err != nil {
+			return nil, err
+		}
+		if candidate.GetProviderKey() != "" && normalizeProviderKey(config.GetProviderKey()) != normalizeProviderKey(candidate.GetProviderKey()) {
+			return nil, core.NewError(core.CodeRouteNotFound, "sms route provider config does not match provider", false)
+		}
+		return config, nil
+	}
+	return r.configs.GetEnabledProviderConfig(ctx, candidate.GetProviderKey(), target)
 }
 
 type ConfiguredProvider struct {

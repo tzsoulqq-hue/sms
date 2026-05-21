@@ -52,6 +52,44 @@ func (s *ProviderAdminService) DeleteProviderConfig(ctx context.Context, provide
 	return s.configs.DeleteProviderConfig(ctx, providerConfigID)
 }
 
+func (s *ProviderAdminService) ListRouteOptions(ctx context.Context, providerConfigID, providerKey string) (*smsinternalv1.SmsProviderRouteOptions, error) {
+	config, err := s.configForRouteOptions(ctx, providerConfigID, providerKey)
+	if err != nil {
+		return nil, err
+	}
+	if !config.GetEnabled() {
+		return nil, core.NewError(core.CodeValidationFailed, "sms provider config is disabled", false)
+	}
+	provider, err := providerFromConfig(config, s.timeout)
+	if err != nil {
+		return nil, err
+	}
+	return listRouteOptions(ctx, provider, config)
+}
+
+func (s *ProviderAdminService) UpsertRouteProfile(ctx context.Context, profile *smsinternalv1.SmsRouteProfile) (*smsinternalv1.SmsRouteProfile, error) {
+	return s.configs.UpsertRouteProfile(ctx, profile)
+}
+
+func (s *ProviderAdminService) GetRouteProfile(ctx context.Context, profileKey string) (*smsinternalv1.SmsRouteProfile, error) {
+	return s.configs.GetRouteProfile(ctx, profileKey)
+}
+
+func (s *ProviderAdminService) ListRouteProfiles(ctx context.Context, includeDisabled bool) ([]*smsinternalv1.SmsRouteProfile, error) {
+	return s.configs.ListRouteProfiles(ctx, includeDisabled)
+}
+
+func (s *ProviderAdminService) DeleteRouteProfile(ctx context.Context, profileKey string) error {
+	return s.configs.DeleteRouteProfile(ctx, profileKey)
+}
+
+func (s *ProviderAdminService) configForRouteOptions(ctx context.Context, providerConfigID, providerKey string) (*smsinternalv1.SmsProviderConfig, error) {
+	if strings.TrimSpace(providerConfigID) != "" {
+		return s.configs.GetProviderConfig(ctx, providerConfigID)
+	}
+	return s.configs.GetEnabledProviderConfig(ctx, providerKey, core.Target{})
+}
+
 func (s *ProviderAdminService) GetProviderBalance(ctx context.Context, providerConfigID string) (core.Money, error) {
 	config, err := s.configs.GetProviderConfig(ctx, providerConfigID)
 	if err != nil {

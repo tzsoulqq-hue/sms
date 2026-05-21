@@ -20,6 +20,7 @@ func NewActivationServer(service *app.ActivationService) *ActivationServer {
 func (s *ActivationServer) AcquireNumber(ctx context.Context, request *smsv1.AcquireNumberRequest) (*smsv1.AcquireNumberResponse, error) {
 	activation, err := s.service.AcquireNumber(ctx, core.AcquireNumberCommand{
 		RequestID:        request.GetRequestId(),
+		ProfileKey:       request.GetProfileKey(),
 		ProviderConfigID: request.GetProviderConfigId(),
 		ProviderKey:      request.GetProviderKey(),
 		Target:           fromProtoTarget(request.GetTarget()),

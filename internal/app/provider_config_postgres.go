@@ -46,6 +46,13 @@ func (s *PostgresProviderConfigStore) Close() {
 }
 
 func (s *PostgresProviderConfigStore) EnsureSchema(ctx context.Context) error {
+	if err := s.ensureProviderConfigSchema(ctx); err != nil {
+		return err
+	}
+	return s.ensureRouteProfileSchema(ctx)
+}
+
+func (s *PostgresProviderConfigStore) ensureProviderConfigSchema(ctx context.Context) error {
 	_, err := s.pool.Exec(ctx, `
 CREATE TABLE IF NOT EXISTS sms_provider_configs (
   provider_config_id text PRIMARY KEY,

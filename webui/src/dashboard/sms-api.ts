@@ -3,16 +3,23 @@ import type {
   CancelProviderActivationResponse,
   DeleteProviderConfigResponse,
   GetProviderBalanceResponse,
+  ListRouteOptionsResponse,
   ListActivationsResponse,
   ListProviderConfigsResponse,
+  ListRouteProfilesResponse,
   SmsProviderConfig,
+  SmsRouteProfile,
+  UpsertRouteProfileResponse,
+  DeleteRouteProfileResponse,
   UpsertProviderConfigResponse
 } from '@/proto/byte/v/forge/sms/internal/v1/sms_internal';
 
 export const smsKeys = {
   configs: ['sms', 'provider-configs'] as const,
+  profiles: ['sms', 'route-profiles'] as const,
   activations: ['sms', 'activations'] as const,
-  balance: (id: string) => ['sms', 'balance', id] as const
+  balance: (id: string) => ['sms', 'balance', id] as const,
+  routeOptions: (providerKey: string) => ['sms', 'route-options', providerKey] as const
 };
 
 export function listSmsProviderConfigs() {
@@ -28,6 +35,25 @@ export function saveSmsProviderConfig(config: SmsProviderConfig) {
 
 export function deleteSmsProviderConfig(id: string) {
   return api<DeleteProviderConfigResponse>(`/api/sms/provider-configs/${encodeURIComponent(id)}`, { method: 'DELETE' });
+}
+
+export function listSmsRouteProfiles() {
+  return api<ListRouteProfilesResponse>('/api/sms/route-profiles?include_disabled=true');
+}
+
+export function saveSmsRouteProfile(profile: SmsRouteProfile) {
+  return api<UpsertRouteProfileResponse>('/api/sms/route-profiles', {
+    method: 'POST',
+    body: JSON.stringify({ profile })
+  });
+}
+
+export function deleteSmsRouteProfile(profileKey: string) {
+  return api<DeleteRouteProfileResponse>(`/api/sms/route-profiles/${encodeURIComponent(profileKey)}`, { method: 'DELETE' });
+}
+
+export function listSmsRouteOptions(providerKey: string) {
+  return api<ListRouteOptionsResponse>(`/api/sms/route-options?provider_key=${encodeURIComponent(providerKey)}`);
 }
 
 export function getSmsProviderBalance(id: string) {

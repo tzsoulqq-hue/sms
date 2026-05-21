@@ -23,6 +23,11 @@ const (
 	SmsProviderAdminService_GetProviderConfig_FullMethodName    = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/GetProviderConfig"
 	SmsProviderAdminService_ListProviderConfigs_FullMethodName  = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/ListProviderConfigs"
 	SmsProviderAdminService_DeleteProviderConfig_FullMethodName = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/DeleteProviderConfig"
+	SmsProviderAdminService_ListRouteOptions_FullMethodName     = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/ListRouteOptions"
+	SmsProviderAdminService_UpsertRouteProfile_FullMethodName   = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/UpsertRouteProfile"
+	SmsProviderAdminService_GetRouteProfile_FullMethodName      = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/GetRouteProfile"
+	SmsProviderAdminService_ListRouteProfiles_FullMethodName    = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/ListRouteProfiles"
+	SmsProviderAdminService_DeleteRouteProfile_FullMethodName   = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/DeleteRouteProfile"
 	SmsProviderAdminService_GetProviderBalance_FullMethodName   = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/GetProviderBalance"
 	SmsProviderAdminService_ListActivations_FullMethodName      = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/ListActivations"
 	SmsProviderAdminService_CancelActivation_FullMethodName     = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/CancelActivation"
@@ -36,6 +41,11 @@ type SmsProviderAdminServiceClient interface {
 	GetProviderConfig(ctx context.Context, in *GetProviderConfigRequest, opts ...grpc.CallOption) (*GetProviderConfigResponse, error)
 	ListProviderConfigs(ctx context.Context, in *ListProviderConfigsRequest, opts ...grpc.CallOption) (*ListProviderConfigsResponse, error)
 	DeleteProviderConfig(ctx context.Context, in *DeleteProviderConfigRequest, opts ...grpc.CallOption) (*DeleteProviderConfigResponse, error)
+	ListRouteOptions(ctx context.Context, in *ListRouteOptionsRequest, opts ...grpc.CallOption) (*ListRouteOptionsResponse, error)
+	UpsertRouteProfile(ctx context.Context, in *UpsertRouteProfileRequest, opts ...grpc.CallOption) (*UpsertRouteProfileResponse, error)
+	GetRouteProfile(ctx context.Context, in *GetRouteProfileRequest, opts ...grpc.CallOption) (*GetRouteProfileResponse, error)
+	ListRouteProfiles(ctx context.Context, in *ListRouteProfilesRequest, opts ...grpc.CallOption) (*ListRouteProfilesResponse, error)
+	DeleteRouteProfile(ctx context.Context, in *DeleteRouteProfileRequest, opts ...grpc.CallOption) (*DeleteRouteProfileResponse, error)
 	GetProviderBalance(ctx context.Context, in *GetProviderBalanceRequest, opts ...grpc.CallOption) (*GetProviderBalanceResponse, error)
 	ListActivations(ctx context.Context, in *ListActivationsRequest, opts ...grpc.CallOption) (*ListActivationsResponse, error)
 	CancelActivation(ctx context.Context, in *CancelProviderActivationRequest, opts ...grpc.CallOption) (*CancelProviderActivationResponse, error)
@@ -89,6 +99,56 @@ func (c *smsProviderAdminServiceClient) DeleteProviderConfig(ctx context.Context
 	return out, nil
 }
 
+func (c *smsProviderAdminServiceClient) ListRouteOptions(ctx context.Context, in *ListRouteOptionsRequest, opts ...grpc.CallOption) (*ListRouteOptionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRouteOptionsResponse)
+	err := c.cc.Invoke(ctx, SmsProviderAdminService_ListRouteOptions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *smsProviderAdminServiceClient) UpsertRouteProfile(ctx context.Context, in *UpsertRouteProfileRequest, opts ...grpc.CallOption) (*UpsertRouteProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpsertRouteProfileResponse)
+	err := c.cc.Invoke(ctx, SmsProviderAdminService_UpsertRouteProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *smsProviderAdminServiceClient) GetRouteProfile(ctx context.Context, in *GetRouteProfileRequest, opts ...grpc.CallOption) (*GetRouteProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRouteProfileResponse)
+	err := c.cc.Invoke(ctx, SmsProviderAdminService_GetRouteProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *smsProviderAdminServiceClient) ListRouteProfiles(ctx context.Context, in *ListRouteProfilesRequest, opts ...grpc.CallOption) (*ListRouteProfilesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListRouteProfilesResponse)
+	err := c.cc.Invoke(ctx, SmsProviderAdminService_ListRouteProfiles_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *smsProviderAdminServiceClient) DeleteRouteProfile(ctx context.Context, in *DeleteRouteProfileRequest, opts ...grpc.CallOption) (*DeleteRouteProfileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeleteRouteProfileResponse)
+	err := c.cc.Invoke(ctx, SmsProviderAdminService_DeleteRouteProfile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *smsProviderAdminServiceClient) GetProviderBalance(ctx context.Context, in *GetProviderBalanceRequest, opts ...grpc.CallOption) (*GetProviderBalanceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetProviderBalanceResponse)
@@ -127,6 +187,11 @@ type SmsProviderAdminServiceServer interface {
 	GetProviderConfig(context.Context, *GetProviderConfigRequest) (*GetProviderConfigResponse, error)
 	ListProviderConfigs(context.Context, *ListProviderConfigsRequest) (*ListProviderConfigsResponse, error)
 	DeleteProviderConfig(context.Context, *DeleteProviderConfigRequest) (*DeleteProviderConfigResponse, error)
+	ListRouteOptions(context.Context, *ListRouteOptionsRequest) (*ListRouteOptionsResponse, error)
+	UpsertRouteProfile(context.Context, *UpsertRouteProfileRequest) (*UpsertRouteProfileResponse, error)
+	GetRouteProfile(context.Context, *GetRouteProfileRequest) (*GetRouteProfileResponse, error)
+	ListRouteProfiles(context.Context, *ListRouteProfilesRequest) (*ListRouteProfilesResponse, error)
+	DeleteRouteProfile(context.Context, *DeleteRouteProfileRequest) (*DeleteRouteProfileResponse, error)
 	GetProviderBalance(context.Context, *GetProviderBalanceRequest) (*GetProviderBalanceResponse, error)
 	ListActivations(context.Context, *ListActivationsRequest) (*ListActivationsResponse, error)
 	CancelActivation(context.Context, *CancelProviderActivationRequest) (*CancelProviderActivationResponse, error)
@@ -151,6 +216,21 @@ func (UnimplementedSmsProviderAdminServiceServer) ListProviderConfigs(context.Co
 }
 func (UnimplementedSmsProviderAdminServiceServer) DeleteProviderConfig(context.Context, *DeleteProviderConfigRequest) (*DeleteProviderConfigResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteProviderConfig not implemented")
+}
+func (UnimplementedSmsProviderAdminServiceServer) ListRouteOptions(context.Context, *ListRouteOptionsRequest) (*ListRouteOptionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRouteOptions not implemented")
+}
+func (UnimplementedSmsProviderAdminServiceServer) UpsertRouteProfile(context.Context, *UpsertRouteProfileRequest) (*UpsertRouteProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpsertRouteProfile not implemented")
+}
+func (UnimplementedSmsProviderAdminServiceServer) GetRouteProfile(context.Context, *GetRouteProfileRequest) (*GetRouteProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRouteProfile not implemented")
+}
+func (UnimplementedSmsProviderAdminServiceServer) ListRouteProfiles(context.Context, *ListRouteProfilesRequest) (*ListRouteProfilesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListRouteProfiles not implemented")
+}
+func (UnimplementedSmsProviderAdminServiceServer) DeleteRouteProfile(context.Context, *DeleteRouteProfileRequest) (*DeleteRouteProfileResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteRouteProfile not implemented")
 }
 func (UnimplementedSmsProviderAdminServiceServer) GetProviderBalance(context.Context, *GetProviderBalanceRequest) (*GetProviderBalanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProviderBalance not implemented")
@@ -255,6 +335,96 @@ func _SmsProviderAdminService_DeleteProviderConfig_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SmsProviderAdminService_ListRouteOptions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRouteOptionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmsProviderAdminServiceServer).ListRouteOptions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SmsProviderAdminService_ListRouteOptions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmsProviderAdminServiceServer).ListRouteOptions(ctx, req.(*ListRouteOptionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SmsProviderAdminService_UpsertRouteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertRouteProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmsProviderAdminServiceServer).UpsertRouteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SmsProviderAdminService_UpsertRouteProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmsProviderAdminServiceServer).UpsertRouteProfile(ctx, req.(*UpsertRouteProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SmsProviderAdminService_GetRouteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRouteProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmsProviderAdminServiceServer).GetRouteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SmsProviderAdminService_GetRouteProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmsProviderAdminServiceServer).GetRouteProfile(ctx, req.(*GetRouteProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SmsProviderAdminService_ListRouteProfiles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRouteProfilesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmsProviderAdminServiceServer).ListRouteProfiles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SmsProviderAdminService_ListRouteProfiles_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmsProviderAdminServiceServer).ListRouteProfiles(ctx, req.(*ListRouteProfilesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SmsProviderAdminService_DeleteRouteProfile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRouteProfileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmsProviderAdminServiceServer).DeleteRouteProfile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SmsProviderAdminService_DeleteRouteProfile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmsProviderAdminServiceServer).DeleteRouteProfile(ctx, req.(*DeleteRouteProfileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _SmsProviderAdminService_GetProviderBalance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetProviderBalanceRequest)
 	if err := dec(in); err != nil {
@@ -331,6 +501,26 @@ var SmsProviderAdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteProviderConfig",
 			Handler:    _SmsProviderAdminService_DeleteProviderConfig_Handler,
+		},
+		{
+			MethodName: "ListRouteOptions",
+			Handler:    _SmsProviderAdminService_ListRouteOptions_Handler,
+		},
+		{
+			MethodName: "UpsertRouteProfile",
+			Handler:    _SmsProviderAdminService_UpsertRouteProfile_Handler,
+		},
+		{
+			MethodName: "GetRouteProfile",
+			Handler:    _SmsProviderAdminService_GetRouteProfile_Handler,
+		},
+		{
+			MethodName: "ListRouteProfiles",
+			Handler:    _SmsProviderAdminService_ListRouteProfiles_Handler,
+		},
+		{
+			MethodName: "DeleteRouteProfile",
+			Handler:    _SmsProviderAdminService_DeleteRouteProfile_Handler,
 		},
 		{
 			MethodName: "GetProviderBalance",

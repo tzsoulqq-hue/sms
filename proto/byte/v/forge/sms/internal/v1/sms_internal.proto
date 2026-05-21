@@ -18,6 +18,11 @@ service SmsProviderAdminService {
   rpc GetProviderConfig(GetProviderConfigRequest) returns (GetProviderConfigResponse);
   rpc ListProviderConfigs(ListProviderConfigsRequest) returns (ListProviderConfigsResponse);
   rpc DeleteProviderConfig(DeleteProviderConfigRequest) returns (DeleteProviderConfigResponse);
+  rpc ListRouteOptions(ListRouteOptionsRequest) returns (ListRouteOptionsResponse);
+  rpc UpsertRouteProfile(UpsertRouteProfileRequest) returns (UpsertRouteProfileResponse);
+  rpc GetRouteProfile(GetRouteProfileRequest) returns (GetRouteProfileResponse);
+  rpc ListRouteProfiles(ListRouteProfilesRequest) returns (ListRouteProfilesResponse);
+  rpc DeleteRouteProfile(DeleteRouteProfileRequest) returns (DeleteRouteProfileResponse);
   rpc GetProviderBalance(GetProviderBalanceRequest) returns (GetProviderBalanceResponse);
   rpc ListActivations(ListActivationsRequest) returns (ListActivationsResponse);
   rpc CancelActivation(CancelProviderActivationRequest) returns (CancelProviderActivationResponse);
@@ -38,6 +43,23 @@ message ProviderError {
   byte.v.forge.contracts.sms.v1.SmsError public_error = 1;
   string provider_error_code = 2;
   string raw_response = 3;
+}
+
+message SmsRouteOption {
+  string value = 1;
+  string label = 2;
+  byte.v.forge.contracts.sms.v1.DecimalMoney price = 3;
+  int32 available_count = 4;
+  map<string, string> metadata = 20;
+}
+
+message SmsProviderRouteOptions {
+  string provider_key = 1;
+  repeated SmsRouteOption services = 2;
+  repeated SmsRouteOption countries = 3;
+  repeated SmsRouteOption operators = 4;
+  repeated SmsRouteOption upstream_providers = 5;
+  ProviderError error = 20;
 }
 
 message ProviderActivation {
@@ -83,6 +105,40 @@ message SmsProviderCapabilities {
   repeated string supported_country_iso2 = 11;
 }
 
+enum SmsRouteSelectionStrategy {
+  SMS_ROUTE_SELECTION_STRATEGY_UNSPECIFIED = 0;
+  SMS_ROUTE_SELECTION_STRATEGY_PRIORITY = 1;
+  SMS_ROUTE_SELECTION_STRATEGY_LOWEST_PRICE = 2;
+  SMS_ROUTE_SELECTION_STRATEGY_SPECIFIED_PROVIDER = 3;
+}
+
+message SmsRouteCandidate {
+  string route_id = 1;
+  bool enabled = 2;
+  int32 priority = 3;
+  string provider_config_id = 4;
+  string provider_key = 5;
+  string upstream_service_key = 6;
+  string provider_country_id = 7;
+  byte.v.forge.contracts.sms.v1.SmsTarget target = 8;
+  byte.v.forge.contracts.sms.v1.DecimalMoney min_price = 9;
+  byte.v.forge.contracts.sms.v1.DecimalMoney max_price = 10;
+  map<string, string> provider_options = 20;
+}
+
+message SmsRouteProfile {
+  string profile_key = 1;
+  string display_name = 2;
+  bool enabled = 3;
+  SmsRouteSelectionStrategy selection_strategy = 4;
+  string preferred_provider_key = 5;
+  byte.v.forge.contracts.sms.v1.SmsTarget default_target = 6;
+  repeated SmsRouteCandidate routes = 7;
+  map<string, string> labels = 20;
+  google.protobuf.Timestamp created_at = 30;
+  google.protobuf.Timestamp updated_at = 31;
+}
+
 message UpsertProviderConfigRequest {
   SmsProviderConfig config = 1;
 }
@@ -116,6 +172,51 @@ message DeleteProviderConfigRequest {
 }
 
 message DeleteProviderConfigResponse {
+  ProviderError error = 1;
+}
+
+message ListRouteOptionsRequest {
+  string provider_config_id = 1;
+  string provider_key = 2;
+}
+
+message ListRouteOptionsResponse {
+  SmsProviderRouteOptions options = 1;
+  ProviderError error = 2;
+}
+
+message UpsertRouteProfileRequest {
+  SmsRouteProfile profile = 1;
+}
+
+message UpsertRouteProfileResponse {
+  SmsRouteProfile profile = 1;
+  ProviderError error = 2;
+}
+
+message GetRouteProfileRequest {
+  string profile_key = 1;
+}
+
+message GetRouteProfileResponse {
+  SmsRouteProfile profile = 1;
+  ProviderError error = 2;
+}
+
+message ListRouteProfilesRequest {
+  bool include_disabled = 1;
+}
+
+message ListRouteProfilesResponse {
+  repeated SmsRouteProfile profiles = 1;
+  ProviderError error = 2;
+}
+
+message DeleteRouteProfileRequest {
+  string profile_key = 1;
+}
+
+message DeleteRouteProfileResponse {
   ProviderError error = 1;
 }
 
