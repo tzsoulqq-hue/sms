@@ -143,6 +143,7 @@ func (s *ActivationService) CheckCode(ctx context.Context, activationID string) 
 	if err != nil {
 		return core.Activation{}, nil, err
 	}
+	bindActivationProviderConfig(provider, activation)
 	result, err := provider.GetStatus(ctx, activation.UpstreamActivationID)
 	if err != nil {
 		activation.LastError = asCoreError(err)
@@ -266,6 +267,7 @@ func (s *ActivationService) applyAction(ctx context.Context, activationID, _ str
 	if err != nil {
 		return core.Activation{}, err
 	}
+	bindActivationProviderConfig(provider, activation)
 	if err := provider.SetStatus(ctx, activation.UpstreamActivationID, action); err != nil {
 		activation.LastError = asCoreError(err)
 		activation.UpdatedAt = s.clock.Now()
@@ -278,6 +280,14 @@ func (s *ActivationService) applyAction(ctx context.Context, activationID, _ str
 		return core.Activation{}, err
 	}
 	return activation, nil
+}
+
+func bindActivationProviderConfig(provider core.Provider, activation core.Activation) {
+	configured, ok := provider.(*ConfiguredProvider)
+	if !ok {
+		return
+	}
+	configured.BindActivationConfig(activation.UpstreamActivationID, activation.ProviderConfigID)
 }
 
 func (s *ActivationService) expireIfNeeded(ctx context.Context, activation *core.Activation) error {

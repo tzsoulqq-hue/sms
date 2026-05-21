@@ -79,6 +79,9 @@ func toProtoError(err error) *smsv1.SmsError {
 	if !errors.As(err, &smsErr) {
 		smsErr = core.NewError(core.CodeInternal, err.Error(), false)
 	}
+	if smsErr == nil {
+		return nil
+	}
 	return &smsv1.SmsError{
 		Code:      toProtoErrorCode(smsErr.Code),
 		Message:   smsErr.Message,

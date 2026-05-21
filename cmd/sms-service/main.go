@@ -33,7 +33,11 @@ func main() {
 	}
 	defer configStore.Close()
 
-	activationStore := app.NewMemoryActivationStore()
+	activationStore, err := app.NewPostgresActivationStore(ctx, cfg.PGDSN)
+	if err != nil {
+		log.Fatalf("initialize SMS activation store: %v", err)
+	}
+	defer activationStore.Close()
 	httpTimeout := time.Duration(cfg.HTTPTimeoutSeconds) * time.Second
 	activationService := app.NewActivationService(
 		activationStore,

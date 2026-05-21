@@ -147,6 +147,15 @@ func (p *ConfiguredProvider) SetStatus(ctx context.Context, upstreamActivationID
 	return provider.SetStatus(ctx, upstreamActivationID, action)
 }
 
+func (p *ConfiguredProvider) BindActivationConfig(upstreamActivationID string, providerConfigID string) {
+	upstreamActivationID = strings.TrimSpace(upstreamActivationID)
+	providerConfigID = strings.TrimSpace(providerConfigID)
+	if upstreamActivationID == "" || providerConfigID == "" {
+		return
+	}
+	p.activation.Store(upstreamActivationID, providerConfigID)
+}
+
 func (p *ConfiguredProvider) GetBalance(ctx context.Context) (core.Money, error) {
 	config, err := p.configs.GetEnabledProviderConfig(ctx, p.key, core.Target{})
 	if err != nil {
