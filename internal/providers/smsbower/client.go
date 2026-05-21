@@ -288,29 +288,29 @@ func parseAccessNumber(result string, request core.ProviderAcquireRequest) (core
 
 func (c *Client) parseGetNumberV2(result string, request core.ProviderAcquireRequest) (core.ProviderActivation, error) {
 	var payload struct {
-		ActivationID       string          `json:"activationId"`
-		PhoneNumber        json.RawMessage `json:"phoneNumber"`
-		ActivationCost     json.RawMessage `json:"activationCost"`
-		CountryCode        string          `json:"countryCode"`
-		CanGetAnotherSMS   bool            `json:"canGetAnotherSms"`
-		ActivationTime     json.RawMessage `json:"activationTime"`
-		ActivationOperator string          `json:"activationOperator"`
+		ActivationID       int64   `json:"activationId"`
+		PhoneNumber        string  `json:"phoneNumber"`
+		ActivationCost     string  `json:"activationCost"`
+		CountryCode        string  `json:"countryCode"`
+		CanGetAnotherSMS   string  `json:"canGetAnotherSms"`
+		ActivationTime     string  `json:"activationTime"`
+		ActivationOperator *string `json:"activationOperator"`
 	}
 	if err := json.Unmarshal([]byte(result), &payload); err != nil {
 		return core.ProviderActivation{}, core.NewError(core.CodeUpstreamRejected, "bad getNumberV2 json response", false)
 	}
-	if payload.ActivationID == "" {
+	if payload.ActivationID <= 0 {
 		return core.ProviderActivation{}, core.NewError(core.CodeUpstreamRejected, "missing activationId in getNumberV2 response", false)
 	}
-	rawPhone := rawJSONScalar(payload.PhoneNumber)
-	e164, national := phone.Normalize(rawPhone, request.Target.CountryISO2, request.Target.CountryCallingCode)
+	activationID := strconv.FormatInt(payload.ActivationID, 10)
+	e164, national := phone.Normalize(payload.PhoneNumber, request.Target.CountryISO2, request.Target.CountryCallingCode)
 	return core.ProviderActivation{
-		UpstreamActivationID:     payload.ActivationID,
-		UpstreamOperator:         payload.ActivationOperator,
+		UpstreamActivationID:     activationID,
+		UpstreamOperator:         stringOrEmpty(payload.ActivationOperator),
 		PhoneNumber:              core.PhoneNumber{E164: e164, NationalNumber: national, CountryISO2: request.Target.CountryISO2, CountryCallingCode: request.Target.CountryCallingCode},
-		Price:                    core.Money{AmountDecimal: rawJSONScalar(payload.ActivationCost)},
-		AcquiredAt:               parseActivationTime(payload.ActivationTime),
-		CanRequestAdditionalCode: payload.CanGetAnotherSMS,
+		Price:                    core.Money{AmountDecimal: strings.TrimSpace(payload.ActivationCost)},
+		AcquiredAt:               parseActivationTimeText(payload.ActivationTime),
+		CanRequestAdditionalCode: payload.CanGetAnotherSMS == "1",
 	}, nil
 }
 
@@ -399,7 +399,11 @@ func rawJSONScalar(raw json.RawMessage) string {
 }
 
 func parseActivationTime(raw json.RawMessage) time.Time {
-	value := rawJSONScalar(raw)
+	return parseActivationTimeText(rawJSONScalar(raw))
+}
+
+func parseActivationTimeText(value string) time.Time {
+	value = strings.TrimSpace(value)
 	if value == "" {
 		return time.Now().UTC()
 	}
@@ -420,6 +424,13 @@ func parseActivationTime(raw json.RawMessage) time.Time {
 		}
 	}
 	return time.Now().UTC()
+}
+
+func stringOrEmpty(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return strings.TrimSpace(*value)
 }
 
 func decodeJSONObject(result string, out any) error {
