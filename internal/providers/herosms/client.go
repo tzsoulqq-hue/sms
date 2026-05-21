@@ -54,9 +54,17 @@ func (c *Client) Policy() core.ProviderPolicy {
 }
 
 func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquireRequest) (core.ProviderActivation, error) {
+	service := strings.TrimSpace(firstNonEmpty(request.Route.UpstreamServiceKey, request.Target.ApplicationKey))
+	if service == "" {
+		return core.ProviderActivation{}, core.NewError(core.CodeValidationFailed, "hero sms service is required", false)
+	}
+	country := strings.TrimSpace(request.Route.ProviderCountryID)
+	if country == "" {
+		return core.ProviderActivation{}, core.NewError(core.CodeValidationFailed, "hero sms provider country id is required", false)
+	}
 	params := url.Values{}
-	params.Set("service", request.Route.UpstreamServiceKey)
-	params.Set("country", request.Route.ProviderCountryID)
+	params.Set("service", service)
+	params.Set("country", country)
 	if request.Target.MaxPrice.AmountDecimal != "" {
 		params.Set("maxPrice", request.Target.MaxPrice.AmountDecimal)
 	} else if request.Route.MaxPrice.AmountDecimal != "" {
@@ -82,6 +90,15 @@ func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquire
 		},
 		AcquiredAt: time.Now().UTC(),
 	}, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if strings.TrimSpace(value) != "" {
+			return strings.TrimSpace(value)
+		}
+	}
+	return ""
 }
 
 func (c *Client) GetStatus(ctx context.Context, upstreamActivationID string) (core.ProviderCodeResult, error) {

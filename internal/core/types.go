@@ -95,6 +95,7 @@ type SMSCode struct {
 type Activation struct {
 	ID                       string
 	RequestID                string
+	ProviderConfigID         string
 	ProviderKey              string
 	UpstreamActivationID     string
 	UpstreamOperator         string
@@ -157,11 +158,19 @@ type Route struct {
 	ProviderOptions           map[string]string
 }
 
+type RouteRequest struct {
+	Target           Target
+	ProviderKey      string
+	ProviderConfigID string
+}
+
 type AcquireNumberCommand struct {
-	RequestID     string
-	Target        Target
-	LeaseDuration time.Duration
-	Labels        map[string]string
+	RequestID        string
+	ProviderKey      string
+	ProviderConfigID string
+	Target           Target
+	LeaseDuration    time.Duration
+	Labels           map[string]string
 }
 
 type ProviderAcquireRequest struct {

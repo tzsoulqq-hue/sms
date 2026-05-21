@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 import "byte/v/forge/contracts/sms/v1/sms.proto";
 
 option csharp_namespace = "ByteVForge.Sms.Internal.V1";
-option go_package = "github.com/byte-v-forge/sms/gen/go/byte/v/forge/sms/internal/v1;smsinternalv1";
+option go_package = "github.com/byte-v-forge/sms/gen/go/byte/v/forge/sms/private/v1;smsinternalv1";
 option java_multiple_files = true;
 option java_outer_classname = "SmsInternalProto";
 option java_package = "com.bytevforge.sms.internal.v1";
@@ -19,6 +19,8 @@ service SmsProviderAdminService {
   rpc ListProviderConfigs(ListProviderConfigsRequest) returns (ListProviderConfigsResponse);
   rpc DeleteProviderConfig(DeleteProviderConfigRequest) returns (DeleteProviderConfigResponse);
   rpc GetProviderBalance(GetProviderBalanceRequest) returns (GetProviderBalanceResponse);
+  rpc ListActivations(ListActivationsRequest) returns (ListActivationsResponse);
+  rpc CancelActivation(CancelProviderActivationRequest) returns (CancelProviderActivationResponse);
 }
 
 service SmsProviderCatalogService {
@@ -59,6 +61,11 @@ message SmsProviderConfig {
   string proxy_ref = 7;
   byte.v.forge.contracts.sms.v1.SmsTarget default_target = 8;
   SmsProviderCapabilities capabilities = 9;
+  string upstream_service_key = 10;
+  string provider_country_id = 11;
+  string credential_secret = 12;
+  string http_proxy = 13;
+  bool credential_secret_set = 14;
   map<string, string> labels = 20;
   google.protobuf.Timestamp created_at = 30;
   google.protobuf.Timestamp updated_at = 31;
@@ -118,6 +125,35 @@ message GetProviderBalanceRequest {
 
 message GetProviderBalanceResponse {
   byte.v.forge.contracts.sms.v1.DecimalMoney balance = 1;
+  ProviderError error = 2;
+}
+
+message SmsActivationView {
+  byte.v.forge.contracts.sms.v1.SmsActivation activation = 1;
+  byte.v.forge.contracts.sms.v1.SmsCode latest_code = 2;
+  string provider_config_id = 3;
+  string provider_key = 4;
+  string upstream_activation_id = 5;
+  string upstream_operator = 6;
+}
+
+message ListActivationsRequest {
+  bool include_final = 1;
+  int32 limit = 2;
+}
+
+message ListActivationsResponse {
+  repeated SmsActivationView activations = 1;
+  ProviderError error = 2;
+}
+
+message CancelProviderActivationRequest {
+  string activation_id = 1;
+  string request_id = 2;
+}
+
+message CancelProviderActivationResponse {
+  SmsActivationView activation = 1;
   ProviderError error = 2;
 }
 

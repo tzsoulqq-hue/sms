@@ -633,7 +633,11 @@ type AcquireNumberRequest struct {
 	RequestId     string                 `protobuf:"bytes,1,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
 	Target        *SmsTarget             `protobuf:"bytes,2,opt,name=target,proto3" json:"target,omitempty"`
 	LeaseDuration *durationpb.Duration   `protobuf:"bytes,3,opt,name=lease_duration,json=leaseDuration,proto3" json:"lease_duration,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,20,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Optional exact provider config to use. When set, routing does not auto-pick a provider.
+	ProviderConfigId string `protobuf:"bytes,4,opt,name=provider_config_id,json=providerConfigId,proto3" json:"provider_config_id,omitempty"`
+	// Optional provider key, for example "herosms" or "smsbower".
+	ProviderKey   string            `protobuf:"bytes,5,opt,name=provider_key,json=providerKey,proto3" json:"provider_key,omitempty"`
+	Labels        map[string]string `protobuf:"bytes,20,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -687,6 +691,20 @@ func (x *AcquireNumberRequest) GetLeaseDuration() *durationpb.Duration {
 		return x.LeaseDuration
 	}
 	return nil
+}
+
+func (x *AcquireNumberRequest) GetProviderConfigId() string {
+	if x != nil {
+		return x.ProviderConfigId
+	}
+	return ""
+}
+
+func (x *AcquireNumberRequest) GetProviderKey() string {
+	if x != nil {
+		return x.ProviderKey
+	}
+	return ""
 }
 
 func (x *AcquireNumberRequest) GetLabels() map[string]string {
@@ -2357,12 +2375,14 @@ const file_byte_v_forge_contracts_sms_v1_sms_proto_rawDesc = "" +
 	"\x06labels\x18\x14 \x03(\v28.byte.v.forge.contracts.sms.v1.SmsActivation.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xcd\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x9e\x03\n" +
 	"\x14AcquireNumberRequest\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12@\n" +
 	"\x06target\x18\x02 \x01(\v2(.byte.v.forge.contracts.sms.v1.SmsTargetR\x06target\x12@\n" +
-	"\x0elease_duration\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\rleaseDuration\x12W\n" +
+	"\x0elease_duration\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\rleaseDuration\x12,\n" +
+	"\x12provider_config_id\x18\x04 \x01(\tR\x10providerConfigId\x12!\n" +
+	"\fprovider_key\x18\x05 \x01(\tR\vproviderKey\x12W\n" +
 	"\x06labels\x18\x14 \x03(\v2?.byte.v.forge.contracts.sms.v1.AcquireNumberRequest.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +

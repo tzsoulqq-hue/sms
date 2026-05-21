@@ -10,6 +10,7 @@ SMS provider 集成服务。
 - 运行入口：`cmd/sms-service`
 - 公共契约 adapter：`internal/adapters/grpc`
 - 核心生命周期服务：`internal/app`
+- provider 配置持久化：`sms_provider_configs` 表
 - 领域模型和端口：`internal/core`
 - 5Sim adapter：`internal/providers/fivesim`
 - HeroSMS adapter：`internal/providers/herosms`
@@ -62,7 +63,9 @@ go vet ./...
 
 `sms-service` 通过 `SMS_LISTEN_ADDR` 监听 gRPC，默认 `:50051`。
 
-HeroSMS 路由使用 `SMS_PROVIDER=herosms`、`SMS_PROVIDER_API_KEY`、`SMS_PROVIDER_ENDPOINT`、`SMS_APPLICATION_KEY`、`SMS_COUNTRY_ISO2`、`SMS_COUNTRY_CALLING_CODE`、`SMS_PROVIDER_COUNTRY_ID`、`SMS_UPSTREAM_SERVICE_KEY`、`SMS_MAX_PRICE_DECIMAL` 和 `SMS_HTTP_PROXY` 配置。
+服务数据源使用 `SMS_PG_DSN` 或 `PG_DSN`。
+provider API key、endpoint、代理、上游 service key、provider country ID 和默认 target 都通过 `SmsProviderAdminService` 写入数据库，由前端 SMS 页面维护。
+调用方通过 `AcquireNumberRequest.provider_config_id` 或 `provider_key` 选择 provider；业务、国家、区号和价格上限仍由 `AcquireNumberRequest.target` 传入。
 
 ## 贡献与安全
 
@@ -72,5 +75,4 @@ HeroSMS 路由使用 `SMS_PROVIDER=herosms`、`SMS_PROVIDER_API_KEY`、`SMS_PROV
 
 ## 尚未实现
 
-- PostgreSQL 持久化 adapter。
 - 基于标准化 route/application mapping 的公共 catalog gRPC adapter。

@@ -45,10 +45,15 @@ func (s *ActivationService) AcquireNumber(ctx context.Context, cmd core.AcquireN
 	if cmd.Target.ApplicationKey == "" {
 		return core.Activation{}, core.NewError(core.CodeValidationFailed, "application_key is required", false)
 	}
-	route, err := s.routes.Resolve(ctx, cmd.Target)
+	route, err := s.routes.Resolve(ctx, core.RouteRequest{
+		Target:           cmd.Target,
+		ProviderKey:      cmd.ProviderKey,
+		ProviderConfigID: cmd.ProviderConfigID,
+	})
 	if err != nil {
 		return core.Activation{}, err
 	}
+	cmd.Target = withRouteTargetDefaults(cmd.Target, route)
 	provider, err := s.provider(route.ProviderKey)
 	if err != nil {
 		return core.Activation{}, err
@@ -93,6 +98,7 @@ func (s *ActivationService) AcquireNumber(ctx context.Context, cmd core.AcquireN
 	activation := core.Activation{
 		ID:                       s.ids.NewID("act_"),
 		RequestID:                cmd.RequestID,
+		ProviderConfigID:         route.ProviderOptions["provider_config_id"],
 		ProviderKey:              provider.Key(),
 		UpstreamActivationID:     providerActivation.UpstreamActivationID,
 		UpstreamOperator:         providerActivation.UpstreamOperator,
@@ -303,6 +309,19 @@ func cloneMap(in map[string]string) map[string]string {
 		out[k] = v
 	}
 	return out
+}
+
+func withRouteTargetDefaults(target core.Target, route core.Route) core.Target {
+	if target.CountryISO2 == "" {
+		target.CountryISO2 = route.CountryISO2
+	}
+	if target.CountryCallingCode == "" {
+		target.CountryCallingCode = route.CountryCallingCode
+	}
+	if target.MaxPrice.AmountDecimal == "" && target.MaxPrice.CurrencyCode == "" {
+		target.MaxPrice = route.MaxPrice
+	}
+	return target
 }
 
 func asCoreError(err error) *core.Error {

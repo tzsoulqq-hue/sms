@@ -195,6 +195,11 @@ type SmsProviderConfig struct {
 	ProxyRef            string                   `protobuf:"bytes,7,opt,name=proxy_ref,json=proxyRef,proto3" json:"proxy_ref,omitempty"`
 	DefaultTarget       *v1.SmsTarget            `protobuf:"bytes,8,opt,name=default_target,json=defaultTarget,proto3" json:"default_target,omitempty"`
 	Capabilities        *SmsProviderCapabilities `protobuf:"bytes,9,opt,name=capabilities,proto3" json:"capabilities,omitempty"`
+	UpstreamServiceKey  string                   `protobuf:"bytes,10,opt,name=upstream_service_key,json=upstreamServiceKey,proto3" json:"upstream_service_key,omitempty"`
+	ProviderCountryId   string                   `protobuf:"bytes,11,opt,name=provider_country_id,json=providerCountryId,proto3" json:"provider_country_id,omitempty"`
+	CredentialSecret    string                   `protobuf:"bytes,12,opt,name=credential_secret,json=credentialSecret,proto3" json:"credential_secret,omitempty"`
+	HttpProxy           string                   `protobuf:"bytes,13,opt,name=http_proxy,json=httpProxy,proto3" json:"http_proxy,omitempty"`
+	CredentialSecretSet bool                     `protobuf:"varint,14,opt,name=credential_secret_set,json=credentialSecretSet,proto3" json:"credential_secret_set,omitempty"`
 	Labels              map[string]string        `protobuf:"bytes,20,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	CreatedAt           *timestamppb.Timestamp   `protobuf:"bytes,30,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt           *timestamppb.Timestamp   `protobuf:"bytes,31,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -293,6 +298,41 @@ func (x *SmsProviderConfig) GetCapabilities() *SmsProviderCapabilities {
 		return x.Capabilities
 	}
 	return nil
+}
+
+func (x *SmsProviderConfig) GetUpstreamServiceKey() string {
+	if x != nil {
+		return x.UpstreamServiceKey
+	}
+	return ""
+}
+
+func (x *SmsProviderConfig) GetProviderCountryId() string {
+	if x != nil {
+		return x.ProviderCountryId
+	}
+	return ""
+}
+
+func (x *SmsProviderConfig) GetCredentialSecret() string {
+	if x != nil {
+		return x.CredentialSecret
+	}
+	return ""
+}
+
+func (x *SmsProviderConfig) GetHttpProxy() string {
+	if x != nil {
+		return x.HttpProxy
+	}
+	return ""
+}
+
+func (x *SmsProviderConfig) GetCredentialSecretSet() bool {
+	if x != nil {
+		return x.CredentialSecretSet
+	}
+	return false
 }
 
 func (x *SmsProviderConfig) GetLabels() map[string]string {
@@ -904,6 +944,298 @@ func (x *GetProviderBalanceResponse) GetError() *ProviderError {
 	return nil
 }
 
+type SmsActivationView struct {
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Activation           *v1.SmsActivation      `protobuf:"bytes,1,opt,name=activation,proto3" json:"activation,omitempty"`
+	LatestCode           *v1.SmsCode            `protobuf:"bytes,2,opt,name=latest_code,json=latestCode,proto3" json:"latest_code,omitempty"`
+	ProviderConfigId     string                 `protobuf:"bytes,3,opt,name=provider_config_id,json=providerConfigId,proto3" json:"provider_config_id,omitempty"`
+	ProviderKey          string                 `protobuf:"bytes,4,opt,name=provider_key,json=providerKey,proto3" json:"provider_key,omitempty"`
+	UpstreamActivationId string                 `protobuf:"bytes,5,opt,name=upstream_activation_id,json=upstreamActivationId,proto3" json:"upstream_activation_id,omitempty"`
+	UpstreamOperator     string                 `protobuf:"bytes,6,opt,name=upstream_operator,json=upstreamOperator,proto3" json:"upstream_operator,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *SmsActivationView) Reset() {
+	*x = SmsActivationView{}
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SmsActivationView) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SmsActivationView) ProtoMessage() {}
+
+func (x *SmsActivationView) ProtoReflect() protoreflect.Message {
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SmsActivationView.ProtoReflect.Descriptor instead.
+func (*SmsActivationView) Descriptor() ([]byte, []int) {
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SmsActivationView) GetActivation() *v1.SmsActivation {
+	if x != nil {
+		return x.Activation
+	}
+	return nil
+}
+
+func (x *SmsActivationView) GetLatestCode() *v1.SmsCode {
+	if x != nil {
+		return x.LatestCode
+	}
+	return nil
+}
+
+func (x *SmsActivationView) GetProviderConfigId() string {
+	if x != nil {
+		return x.ProviderConfigId
+	}
+	return ""
+}
+
+func (x *SmsActivationView) GetProviderKey() string {
+	if x != nil {
+		return x.ProviderKey
+	}
+	return ""
+}
+
+func (x *SmsActivationView) GetUpstreamActivationId() string {
+	if x != nil {
+		return x.UpstreamActivationId
+	}
+	return ""
+}
+
+func (x *SmsActivationView) GetUpstreamOperator() string {
+	if x != nil {
+		return x.UpstreamOperator
+	}
+	return ""
+}
+
+type ListActivationsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IncludeFinal  bool                   `protobuf:"varint,1,opt,name=include_final,json=includeFinal,proto3" json:"include_final,omitempty"`
+	Limit         int32                  `protobuf:"varint,2,opt,name=limit,proto3" json:"limit,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListActivationsRequest) Reset() {
+	*x = ListActivationsRequest{}
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListActivationsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListActivationsRequest) ProtoMessage() {}
+
+func (x *ListActivationsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListActivationsRequest.ProtoReflect.Descriptor instead.
+func (*ListActivationsRequest) Descriptor() ([]byte, []int) {
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ListActivationsRequest) GetIncludeFinal() bool {
+	if x != nil {
+		return x.IncludeFinal
+	}
+	return false
+}
+
+func (x *ListActivationsRequest) GetLimit() int32 {
+	if x != nil {
+		return x.Limit
+	}
+	return 0
+}
+
+type ListActivationsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Activations   []*SmsActivationView   `protobuf:"bytes,1,rep,name=activations,proto3" json:"activations,omitempty"`
+	Error         *ProviderError         `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListActivationsResponse) Reset() {
+	*x = ListActivationsResponse{}
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListActivationsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListActivationsResponse) ProtoMessage() {}
+
+func (x *ListActivationsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListActivationsResponse.ProtoReflect.Descriptor instead.
+func (*ListActivationsResponse) Descriptor() ([]byte, []int) {
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ListActivationsResponse) GetActivations() []*SmsActivationView {
+	if x != nil {
+		return x.Activations
+	}
+	return nil
+}
+
+func (x *ListActivationsResponse) GetError() *ProviderError {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
+type CancelProviderActivationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ActivationId  string                 `protobuf:"bytes,1,opt,name=activation_id,json=activationId,proto3" json:"activation_id,omitempty"`
+	RequestId     string                 `protobuf:"bytes,2,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelProviderActivationRequest) Reset() {
+	*x = CancelProviderActivationRequest{}
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelProviderActivationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelProviderActivationRequest) ProtoMessage() {}
+
+func (x *CancelProviderActivationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelProviderActivationRequest.ProtoReflect.Descriptor instead.
+func (*CancelProviderActivationRequest) Descriptor() ([]byte, []int) {
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CancelProviderActivationRequest) GetActivationId() string {
+	if x != nil {
+		return x.ActivationId
+	}
+	return ""
+}
+
+func (x *CancelProviderActivationRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
+type CancelProviderActivationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Activation    *SmsActivationView     `protobuf:"bytes,1,opt,name=activation,proto3" json:"activation,omitempty"`
+	Error         *ProviderError         `protobuf:"bytes,2,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CancelProviderActivationResponse) Reset() {
+	*x = CancelProviderActivationResponse{}
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CancelProviderActivationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CancelProviderActivationResponse) ProtoMessage() {}
+
+func (x *CancelProviderActivationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CancelProviderActivationResponse.ProtoReflect.Descriptor instead.
+func (*CancelProviderActivationResponse) Descriptor() ([]byte, []int) {
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *CancelProviderActivationResponse) GetActivation() *SmsActivationView {
+	if x != nil {
+		return x.Activation
+	}
+	return nil
+}
+
+func (x *CancelProviderActivationResponse) GetError() *ProviderError {
+	if x != nil {
+		return x.Error
+	}
+	return nil
+}
+
 type ProviderSmsApplicationInfo struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	PublicApplication  *v1.SmsApplicationInfo `protobuf:"bytes,1,opt,name=public_application,json=publicApplication,proto3" json:"public_application,omitempty"`
@@ -915,7 +1247,7 @@ type ProviderSmsApplicationInfo struct {
 
 func (x *ProviderSmsApplicationInfo) Reset() {
 	*x = ProviderSmsApplicationInfo{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[14]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -927,7 +1259,7 @@ func (x *ProviderSmsApplicationInfo) String() string {
 func (*ProviderSmsApplicationInfo) ProtoMessage() {}
 
 func (x *ProviderSmsApplicationInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[14]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -940,7 +1272,7 @@ func (x *ProviderSmsApplicationInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderSmsApplicationInfo.ProtoReflect.Descriptor instead.
 func (*ProviderSmsApplicationInfo) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{14}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ProviderSmsApplicationInfo) GetPublicApplication() *v1.SmsApplicationInfo {
@@ -975,7 +1307,7 @@ type ProviderSmsCountry struct {
 
 func (x *ProviderSmsCountry) Reset() {
 	*x = ProviderSmsCountry{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[15]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -987,7 +1319,7 @@ func (x *ProviderSmsCountry) String() string {
 func (*ProviderSmsCountry) ProtoMessage() {}
 
 func (x *ProviderSmsCountry) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[15]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1000,7 +1332,7 @@ func (x *ProviderSmsCountry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderSmsCountry.ProtoReflect.Descriptor instead.
 func (*ProviderSmsCountry) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{15}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ProviderSmsCountry) GetPublicCountry() *v1.SmsCountry {
@@ -1037,7 +1369,7 @@ type ProviderSmsPriceOffer struct {
 
 func (x *ProviderSmsPriceOffer) Reset() {
 	*x = ProviderSmsPriceOffer{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[16]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1049,7 +1381,7 @@ func (x *ProviderSmsPriceOffer) String() string {
 func (*ProviderSmsPriceOffer) ProtoMessage() {}
 
 func (x *ProviderSmsPriceOffer) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[16]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1062,7 +1394,7 @@ func (x *ProviderSmsPriceOffer) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderSmsPriceOffer.ProtoReflect.Descriptor instead.
 func (*ProviderSmsPriceOffer) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{16}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *ProviderSmsPriceOffer) GetPublicOffer() *v1.SmsPriceOffer {
@@ -1110,7 +1442,7 @@ type ProviderSmsCountryPriceSummary struct {
 
 func (x *ProviderSmsCountryPriceSummary) Reset() {
 	*x = ProviderSmsCountryPriceSummary{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[17]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1122,7 +1454,7 @@ func (x *ProviderSmsCountryPriceSummary) String() string {
 func (*ProviderSmsCountryPriceSummary) ProtoMessage() {}
 
 func (x *ProviderSmsCountryPriceSummary) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[17]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1135,7 +1467,7 @@ func (x *ProviderSmsCountryPriceSummary) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProviderSmsCountryPriceSummary.ProtoReflect.Descriptor instead.
 func (*ProviderSmsCountryPriceSummary) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{17}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *ProviderSmsCountryPriceSummary) GetCountry() *ProviderSmsCountry {
@@ -1161,7 +1493,7 @@ type ListProviderApplicationsRequest struct {
 
 func (x *ListProviderApplicationsRequest) Reset() {
 	*x = ListProviderApplicationsRequest{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[18]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1173,7 +1505,7 @@ func (x *ListProviderApplicationsRequest) String() string {
 func (*ListProviderApplicationsRequest) ProtoMessage() {}
 
 func (x *ListProviderApplicationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[18]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1186,7 +1518,7 @@ func (x *ListProviderApplicationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProviderApplicationsRequest.ProtoReflect.Descriptor instead.
 func (*ListProviderApplicationsRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{18}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ListProviderApplicationsRequest) GetProviderConfigId() string {
@@ -1206,7 +1538,7 @@ type ListProviderApplicationsResponse struct {
 
 func (x *ListProviderApplicationsResponse) Reset() {
 	*x = ListProviderApplicationsResponse{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[19]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1218,7 +1550,7 @@ func (x *ListProviderApplicationsResponse) String() string {
 func (*ListProviderApplicationsResponse) ProtoMessage() {}
 
 func (x *ListProviderApplicationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[19]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1231,7 +1563,7 @@ func (x *ListProviderApplicationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProviderApplicationsResponse.ProtoReflect.Descriptor instead.
 func (*ListProviderApplicationsResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{19}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *ListProviderApplicationsResponse) GetApplications() []*ProviderSmsApplicationInfo {
@@ -1257,7 +1589,7 @@ type ListProviderCountriesRequest struct {
 
 func (x *ListProviderCountriesRequest) Reset() {
 	*x = ListProviderCountriesRequest{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[20]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1269,7 +1601,7 @@ func (x *ListProviderCountriesRequest) String() string {
 func (*ListProviderCountriesRequest) ProtoMessage() {}
 
 func (x *ListProviderCountriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[20]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1282,7 +1614,7 @@ func (x *ListProviderCountriesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProviderCountriesRequest.ProtoReflect.Descriptor instead.
 func (*ListProviderCountriesRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{20}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ListProviderCountriesRequest) GetProviderConfigId() string {
@@ -1302,7 +1634,7 @@ type ListProviderCountriesResponse struct {
 
 func (x *ListProviderCountriesResponse) Reset() {
 	*x = ListProviderCountriesResponse{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[21]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1314,7 +1646,7 @@ func (x *ListProviderCountriesResponse) String() string {
 func (*ListProviderCountriesResponse) ProtoMessage() {}
 
 func (x *ListProviderCountriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[21]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1327,7 +1659,7 @@ func (x *ListProviderCountriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProviderCountriesResponse.ProtoReflect.Descriptor instead.
 func (*ListProviderCountriesResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{21}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ListProviderCountriesResponse) GetCountries() []*ProviderSmsCountry {
@@ -1357,7 +1689,7 @@ type ListProviderPriceOffersRequest struct {
 
 func (x *ListProviderPriceOffersRequest) Reset() {
 	*x = ListProviderPriceOffersRequest{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[22]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1369,7 +1701,7 @@ func (x *ListProviderPriceOffersRequest) String() string {
 func (*ListProviderPriceOffersRequest) ProtoMessage() {}
 
 func (x *ListProviderPriceOffersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[22]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1382,7 +1714,7 @@ func (x *ListProviderPriceOffersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProviderPriceOffersRequest.ProtoReflect.Descriptor instead.
 func (*ListProviderPriceOffersRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{22}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListProviderPriceOffersRequest) GetProviderConfigId() string {
@@ -1430,7 +1762,7 @@ type ListProviderPriceOffersResponse struct {
 
 func (x *ListProviderPriceOffersResponse) Reset() {
 	*x = ListProviderPriceOffersResponse{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[23]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1442,7 +1774,7 @@ func (x *ListProviderPriceOffersResponse) String() string {
 func (*ListProviderPriceOffersResponse) ProtoMessage() {}
 
 func (x *ListProviderPriceOffersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[23]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1455,7 +1787,7 @@ func (x *ListProviderPriceOffersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProviderPriceOffersResponse.ProtoReflect.Descriptor instead.
 func (*ListProviderPriceOffersResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{23}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListProviderPriceOffersResponse) GetOffers() []*ProviderSmsPriceOffer {
@@ -1483,7 +1815,7 @@ type ListTopProviderCountriesByApplicationRequest struct {
 
 func (x *ListTopProviderCountriesByApplicationRequest) Reset() {
 	*x = ListTopProviderCountriesByApplicationRequest{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[24]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1495,7 +1827,7 @@ func (x *ListTopProviderCountriesByApplicationRequest) String() string {
 func (*ListTopProviderCountriesByApplicationRequest) ProtoMessage() {}
 
 func (x *ListTopProviderCountriesByApplicationRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[24]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1508,7 +1840,7 @@ func (x *ListTopProviderCountriesByApplicationRequest) ProtoReflect() protorefle
 
 // Deprecated: Use ListTopProviderCountriesByApplicationRequest.ProtoReflect.Descriptor instead.
 func (*ListTopProviderCountriesByApplicationRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{24}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ListTopProviderCountriesByApplicationRequest) GetProviderConfigId() string {
@@ -1542,7 +1874,7 @@ type ListTopProviderCountriesByApplicationResponse struct {
 
 func (x *ListTopProviderCountriesByApplicationResponse) Reset() {
 	*x = ListTopProviderCountriesByApplicationResponse{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[25]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1554,7 +1886,7 @@ func (x *ListTopProviderCountriesByApplicationResponse) String() string {
 func (*ListTopProviderCountriesByApplicationResponse) ProtoMessage() {}
 
 func (x *ListTopProviderCountriesByApplicationResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[25]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1567,7 +1899,7 @@ func (x *ListTopProviderCountriesByApplicationResponse) ProtoReflect() protorefl
 
 // Deprecated: Use ListTopProviderCountriesByApplicationResponse.ProtoReflect.Descriptor instead.
 func (*ListTopProviderCountriesByApplicationResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{25}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListTopProviderCountriesByApplicationResponse) GetCountries() []*ProviderSmsCountryPriceSummary {
@@ -1601,7 +1933,7 @@ type InboundProviderMessage struct {
 
 func (x *InboundProviderMessage) Reset() {
 	*x = InboundProviderMessage{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[26]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1613,7 +1945,7 @@ func (x *InboundProviderMessage) String() string {
 func (*InboundProviderMessage) ProtoMessage() {}
 
 func (x *InboundProviderMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[26]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1626,7 +1958,7 @@ func (x *InboundProviderMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InboundProviderMessage.ProtoReflect.Descriptor instead.
 func (*InboundProviderMessage) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{26}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *InboundProviderMessage) GetProviderConfigId() string {
@@ -1701,7 +2033,7 @@ type IngestInboundMessageRequest struct {
 
 func (x *IngestInboundMessageRequest) Reset() {
 	*x = IngestInboundMessageRequest{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[27]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1713,7 +2045,7 @@ func (x *IngestInboundMessageRequest) String() string {
 func (*IngestInboundMessageRequest) ProtoMessage() {}
 
 func (x *IngestInboundMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[27]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1726,7 +2058,7 @@ func (x *IngestInboundMessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IngestInboundMessageRequest.ProtoReflect.Descriptor instead.
 func (*IngestInboundMessageRequest) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{27}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *IngestInboundMessageRequest) GetMessage() *InboundProviderMessage {
@@ -1747,7 +2079,7 @@ type IngestInboundMessageResponse struct {
 
 func (x *IngestInboundMessageResponse) Reset() {
 	*x = IngestInboundMessageResponse{}
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[28]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1759,7 +2091,7 @@ func (x *IngestInboundMessageResponse) String() string {
 func (*IngestInboundMessageResponse) ProtoMessage() {}
 
 func (x *IngestInboundMessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[28]
+	mi := &file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1772,7 +2104,7 @@ func (x *IngestInboundMessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IngestInboundMessageResponse.ProtoReflect.Descriptor instead.
 func (*IngestInboundMessageResponse) Descriptor() ([]byte, []int) {
-	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{28}
+	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *IngestInboundMessageResponse) GetActivation() *ProviderActivation {
@@ -1814,7 +2146,7 @@ const file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDesc = "" +
 	"\n" +
 	"raw_status\x18\x06 \x01(\tR\trawStatus\x12[\n" +
 	"\x13last_provider_error\x18\a \x01(\v2+.byte.v.forge.sms.internal.v1.ProviderErrorR\x11lastProviderError\x12:\n" +
-	"\fraw_metadata\x18\x14 \x01(\v2\x17.google.protobuf.StructR\vrawMetadata\"\xc7\x05\n" +
+	"\fraw_metadata\x18\x14 \x01(\v2\x17.google.protobuf.StructR\vrawMetadata\"\xa9\a\n" +
 	"\x11SmsProviderConfig\x12,\n" +
 	"\x12provider_config_id\x18\x01 \x01(\tR\x10providerConfigId\x12!\n" +
 	"\fprovider_key\x18\x02 \x01(\tR\vproviderKey\x12!\n" +
@@ -1824,7 +2156,14 @@ const file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDesc = "" +
 	"\x15credential_secret_ref\x18\x06 \x01(\tR\x13credentialSecretRef\x12\x1b\n" +
 	"\tproxy_ref\x18\a \x01(\tR\bproxyRef\x12O\n" +
 	"\x0edefault_target\x18\b \x01(\v2(.byte.v.forge.contracts.sms.v1.SmsTargetR\rdefaultTarget\x12Y\n" +
-	"\fcapabilities\x18\t \x01(\v25.byte.v.forge.sms.internal.v1.SmsProviderCapabilitiesR\fcapabilities\x12S\n" +
+	"\fcapabilities\x18\t \x01(\v25.byte.v.forge.sms.internal.v1.SmsProviderCapabilitiesR\fcapabilities\x120\n" +
+	"\x14upstream_service_key\x18\n" +
+	" \x01(\tR\x12upstreamServiceKey\x12.\n" +
+	"\x13provider_country_id\x18\v \x01(\tR\x11providerCountryId\x12+\n" +
+	"\x11credential_secret\x18\f \x01(\tR\x10credentialSecret\x12\x1d\n" +
+	"\n" +
+	"http_proxy\x18\r \x01(\tR\thttpProxy\x122\n" +
+	"\x15credential_secret_set\x18\x0e \x01(\bR\x13credentialSecretSet\x12S\n" +
 	"\x06labels\x18\x14 \x03(\v2;.byte.v.forge.sms.internal.v1.SmsProviderConfig.LabelsEntryR\x06labels\x129\n" +
 	"\n" +
 	"created_at\x18\x1e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
@@ -1868,6 +2207,31 @@ const file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDesc = "" +
 	"\x12provider_config_id\x18\x01 \x01(\tR\x10providerConfigId\"\xa6\x01\n" +
 	"\x1aGetProviderBalanceResponse\x12E\n" +
 	"\abalance\x18\x01 \x01(\v2+.byte.v.forge.contracts.sms.v1.DecimalMoneyR\abalance\x12A\n" +
+	"\x05error\x18\x02 \x01(\v2+.byte.v.forge.sms.internal.v1.ProviderErrorR\x05error\"\xde\x02\n" +
+	"\x11SmsActivationView\x12L\n" +
+	"\n" +
+	"activation\x18\x01 \x01(\v2,.byte.v.forge.contracts.sms.v1.SmsActivationR\n" +
+	"activation\x12G\n" +
+	"\vlatest_code\x18\x02 \x01(\v2&.byte.v.forge.contracts.sms.v1.SmsCodeR\n" +
+	"latestCode\x12,\n" +
+	"\x12provider_config_id\x18\x03 \x01(\tR\x10providerConfigId\x12!\n" +
+	"\fprovider_key\x18\x04 \x01(\tR\vproviderKey\x124\n" +
+	"\x16upstream_activation_id\x18\x05 \x01(\tR\x14upstreamActivationId\x12+\n" +
+	"\x11upstream_operator\x18\x06 \x01(\tR\x10upstreamOperator\"S\n" +
+	"\x16ListActivationsRequest\x12#\n" +
+	"\rinclude_final\x18\x01 \x01(\bR\fincludeFinal\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\x05R\x05limit\"\xaf\x01\n" +
+	"\x17ListActivationsResponse\x12Q\n" +
+	"\vactivations\x18\x01 \x03(\v2/.byte.v.forge.sms.internal.v1.SmsActivationViewR\vactivations\x12A\n" +
+	"\x05error\x18\x02 \x01(\v2+.byte.v.forge.sms.internal.v1.ProviderErrorR\x05error\"e\n" +
+	"\x1fCancelProviderActivationRequest\x12#\n" +
+	"\ractivation_id\x18\x01 \x01(\tR\factivationId\x12\x1d\n" +
+	"\n" +
+	"request_id\x18\x02 \x01(\tR\trequestId\"\xb6\x01\n" +
+	" CancelProviderActivationResponse\x12O\n" +
+	"\n" +
+	"activation\x18\x01 \x01(\v2/.byte.v.forge.sms.internal.v1.SmsActivationViewR\n" +
+	"activation\x12A\n" +
 	"\x05error\x18\x02 \x01(\v2+.byte.v.forge.sms.internal.v1.ProviderErrorR\x05error\"\xec\x01\n" +
 	"\x1aProviderSmsApplicationInfo\x12`\n" +
 	"\x12public_application\x18\x01 \x01(\v21.byte.v.forge.contracts.sms.v1.SmsApplicationInfoR\x11publicApplication\x120\n" +
@@ -1931,21 +2295,23 @@ const file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDesc = "" +
 	"activation\x18\x01 \x01(\v20.byte.v.forge.sms.internal.v1.ProviderActivationR\n" +
 	"activation\x12V\n" +
 	"\fpublic_event\x18\x02 \x01(\v23.byte.v.forge.contracts.sms.v1.SmsCodeReceivedEventR\vpublicEvent\x12A\n" +
-	"\x05error\x18\x03 \x01(\v2+.byte.v.forge.sms.internal.v1.ProviderErrorR\x05error2\xd7\x05\n" +
+	"\x05error\x18\x03 \x01(\v2+.byte.v.forge.sms.internal.v1.ProviderErrorR\x05error2\xeb\a\n" +
 	"\x17SmsProviderAdminService\x12\x8d\x01\n" +
 	"\x14UpsertProviderConfig\x129.byte.v.forge.sms.internal.v1.UpsertProviderConfigRequest\x1a:.byte.v.forge.sms.internal.v1.UpsertProviderConfigResponse\x12\x84\x01\n" +
 	"\x11GetProviderConfig\x126.byte.v.forge.sms.internal.v1.GetProviderConfigRequest\x1a7.byte.v.forge.sms.internal.v1.GetProviderConfigResponse\x12\x8a\x01\n" +
 	"\x13ListProviderConfigs\x128.byte.v.forge.sms.internal.v1.ListProviderConfigsRequest\x1a9.byte.v.forge.sms.internal.v1.ListProviderConfigsResponse\x12\x8d\x01\n" +
 	"\x14DeleteProviderConfig\x129.byte.v.forge.sms.internal.v1.DeleteProviderConfigRequest\x1a:.byte.v.forge.sms.internal.v1.DeleteProviderConfigResponse\x12\x87\x01\n" +
-	"\x12GetProviderBalance\x127.byte.v.forge.sms.internal.v1.GetProviderBalanceRequest\x1a8.byte.v.forge.sms.internal.v1.GetProviderBalanceResponse2\xa6\x05\n" +
+	"\x12GetProviderBalance\x127.byte.v.forge.sms.internal.v1.GetProviderBalanceRequest\x1a8.byte.v.forge.sms.internal.v1.GetProviderBalanceResponse\x12~\n" +
+	"\x0fListActivations\x124.byte.v.forge.sms.internal.v1.ListActivationsRequest\x1a5.byte.v.forge.sms.internal.v1.ListActivationsResponse\x12\x91\x01\n" +
+	"\x10CancelActivation\x12=.byte.v.forge.sms.internal.v1.CancelProviderActivationRequest\x1a>.byte.v.forge.sms.internal.v1.CancelProviderActivationResponse2\xa6\x05\n" +
 	"\x19SmsProviderCatalogService\x12\x99\x01\n" +
 	"\x18ListProviderApplications\x12=.byte.v.forge.sms.internal.v1.ListProviderApplicationsRequest\x1a>.byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse\x12\x90\x01\n" +
 	"\x15ListProviderCountries\x12:.byte.v.forge.sms.internal.v1.ListProviderCountriesRequest\x1a;.byte.v.forge.sms.internal.v1.ListProviderCountriesResponse\x12\x96\x01\n" +
 	"\x17ListProviderPriceOffers\x12<.byte.v.forge.sms.internal.v1.ListProviderPriceOffersRequest\x1a=.byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse\x12\xc0\x01\n" +
 	"%ListTopProviderCountriesByApplication\x12J.byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationRequest\x1aK.byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse2\xa9\x01\n" +
 	"\x17SmsWebhookIngestService\x12\x8d\x01\n" +
-	"\x14IngestInboundMessage\x129.byte.v.forge.sms.internal.v1.IngestInboundMessageRequest\x1a:.byte.v.forge.sms.internal.v1.IngestInboundMessageResponseB\xbd\x01\n" +
-	"\x1ecom.bytevforge.sms.internal.v1B\x10SmsInternalProtoP\x01ZMgithub.com/byte-v-forge/sms/gen/go/byte/v/forge/sms/internal/v1;smsinternalv1\xaa\x02\x1aByteVForge.Sms.Internal.V1\xca\x02\x1aByteVForge\\Sms\\Internal\\V1b\x06proto3"
+	"\x14IngestInboundMessage\x129.byte.v.forge.sms.internal.v1.IngestInboundMessageRequest\x1a:.byte.v.forge.sms.internal.v1.IngestInboundMessageResponseB\xbc\x01\n" +
+	"\x1ecom.bytevforge.sms.internal.v1B\x10SmsInternalProtoP\x01ZLgithub.com/byte-v-forge/sms/gen/go/byte/v/forge/sms/private/v1;smsinternalv1\xaa\x02\x1aByteVForge.Sms.Internal.V1\xca\x02\x1aByteVForge\\Sms\\Internal\\V1b\x06proto3"
 
 var (
 	file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescOnce sync.Once
@@ -1959,7 +2325,7 @@ func file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescGZIP() []byte {
 	return file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDescData
 }
 
-var file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_byte_v_forge_sms_internal_v1_sms_internal_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_byte_v_forge_sms_internal_v1_sms_internal_proto_goTypes = []any{
 	(*ProviderError)(nil),                                 // 0: byte.v.forge.sms.internal.v1.ProviderError
 	(*ProviderActivation)(nil),                            // 1: byte.v.forge.sms.internal.v1.ProviderActivation
@@ -1975,43 +2341,49 @@ var file_byte_v_forge_sms_internal_v1_sms_internal_proto_goTypes = []any{
 	(*DeleteProviderConfigResponse)(nil),                  // 11: byte.v.forge.sms.internal.v1.DeleteProviderConfigResponse
 	(*GetProviderBalanceRequest)(nil),                     // 12: byte.v.forge.sms.internal.v1.GetProviderBalanceRequest
 	(*GetProviderBalanceResponse)(nil),                    // 13: byte.v.forge.sms.internal.v1.GetProviderBalanceResponse
-	(*ProviderSmsApplicationInfo)(nil),                    // 14: byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo
-	(*ProviderSmsCountry)(nil),                            // 15: byte.v.forge.sms.internal.v1.ProviderSmsCountry
-	(*ProviderSmsPriceOffer)(nil),                         // 16: byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer
-	(*ProviderSmsCountryPriceSummary)(nil),                // 17: byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary
-	(*ListProviderApplicationsRequest)(nil),               // 18: byte.v.forge.sms.internal.v1.ListProviderApplicationsRequest
-	(*ListProviderApplicationsResponse)(nil),              // 19: byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse
-	(*ListProviderCountriesRequest)(nil),                  // 20: byte.v.forge.sms.internal.v1.ListProviderCountriesRequest
-	(*ListProviderCountriesResponse)(nil),                 // 21: byte.v.forge.sms.internal.v1.ListProviderCountriesResponse
-	(*ListProviderPriceOffersRequest)(nil),                // 22: byte.v.forge.sms.internal.v1.ListProviderPriceOffersRequest
-	(*ListProviderPriceOffersResponse)(nil),               // 23: byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse
-	(*ListTopProviderCountriesByApplicationRequest)(nil),  // 24: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationRequest
-	(*ListTopProviderCountriesByApplicationResponse)(nil), // 25: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse
-	(*InboundProviderMessage)(nil),                        // 26: byte.v.forge.sms.internal.v1.InboundProviderMessage
-	(*IngestInboundMessageRequest)(nil),                   // 27: byte.v.forge.sms.internal.v1.IngestInboundMessageRequest
-	(*IngestInboundMessageResponse)(nil),                  // 28: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse
-	nil,                                                   // 29: byte.v.forge.sms.internal.v1.SmsProviderConfig.LabelsEntry
-	(*v1.SmsError)(nil),                                   // 30: byte.v.forge.contracts.sms.v1.SmsError
-	(*v1.SmsActivation)(nil),                              // 31: byte.v.forge.contracts.sms.v1.SmsActivation
-	(*structpb.Struct)(nil),                               // 32: google.protobuf.Struct
-	(*v1.SmsTarget)(nil),                                  // 33: byte.v.forge.contracts.sms.v1.SmsTarget
-	(*timestamppb.Timestamp)(nil),                         // 34: google.protobuf.Timestamp
-	(*v1.DecimalMoney)(nil),                               // 35: byte.v.forge.contracts.sms.v1.DecimalMoney
-	(*v1.SmsApplicationInfo)(nil),                         // 36: byte.v.forge.contracts.sms.v1.SmsApplicationInfo
-	(*v1.SmsCountry)(nil),                                 // 37: byte.v.forge.contracts.sms.v1.SmsCountry
-	(*v1.SmsPriceOffer)(nil),                              // 38: byte.v.forge.contracts.sms.v1.SmsPriceOffer
-	(*v1.SmsCodeReceivedEvent)(nil),                       // 39: byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent
+	(*SmsActivationView)(nil),                             // 14: byte.v.forge.sms.internal.v1.SmsActivationView
+	(*ListActivationsRequest)(nil),                        // 15: byte.v.forge.sms.internal.v1.ListActivationsRequest
+	(*ListActivationsResponse)(nil),                       // 16: byte.v.forge.sms.internal.v1.ListActivationsResponse
+	(*CancelProviderActivationRequest)(nil),               // 17: byte.v.forge.sms.internal.v1.CancelProviderActivationRequest
+	(*CancelProviderActivationResponse)(nil),              // 18: byte.v.forge.sms.internal.v1.CancelProviderActivationResponse
+	(*ProviderSmsApplicationInfo)(nil),                    // 19: byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo
+	(*ProviderSmsCountry)(nil),                            // 20: byte.v.forge.sms.internal.v1.ProviderSmsCountry
+	(*ProviderSmsPriceOffer)(nil),                         // 21: byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer
+	(*ProviderSmsCountryPriceSummary)(nil),                // 22: byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary
+	(*ListProviderApplicationsRequest)(nil),               // 23: byte.v.forge.sms.internal.v1.ListProviderApplicationsRequest
+	(*ListProviderApplicationsResponse)(nil),              // 24: byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse
+	(*ListProviderCountriesRequest)(nil),                  // 25: byte.v.forge.sms.internal.v1.ListProviderCountriesRequest
+	(*ListProviderCountriesResponse)(nil),                 // 26: byte.v.forge.sms.internal.v1.ListProviderCountriesResponse
+	(*ListProviderPriceOffersRequest)(nil),                // 27: byte.v.forge.sms.internal.v1.ListProviderPriceOffersRequest
+	(*ListProviderPriceOffersResponse)(nil),               // 28: byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse
+	(*ListTopProviderCountriesByApplicationRequest)(nil),  // 29: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationRequest
+	(*ListTopProviderCountriesByApplicationResponse)(nil), // 30: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse
+	(*InboundProviderMessage)(nil),                        // 31: byte.v.forge.sms.internal.v1.InboundProviderMessage
+	(*IngestInboundMessageRequest)(nil),                   // 32: byte.v.forge.sms.internal.v1.IngestInboundMessageRequest
+	(*IngestInboundMessageResponse)(nil),                  // 33: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse
+	nil,                                                   // 34: byte.v.forge.sms.internal.v1.SmsProviderConfig.LabelsEntry
+	(*v1.SmsError)(nil),                                   // 35: byte.v.forge.contracts.sms.v1.SmsError
+	(*v1.SmsActivation)(nil),                              // 36: byte.v.forge.contracts.sms.v1.SmsActivation
+	(*structpb.Struct)(nil),                               // 37: google.protobuf.Struct
+	(*v1.SmsTarget)(nil),                                  // 38: byte.v.forge.contracts.sms.v1.SmsTarget
+	(*timestamppb.Timestamp)(nil),                         // 39: google.protobuf.Timestamp
+	(*v1.DecimalMoney)(nil),                               // 40: byte.v.forge.contracts.sms.v1.DecimalMoney
+	(*v1.SmsCode)(nil),                                    // 41: byte.v.forge.contracts.sms.v1.SmsCode
+	(*v1.SmsApplicationInfo)(nil),                         // 42: byte.v.forge.contracts.sms.v1.SmsApplicationInfo
+	(*v1.SmsCountry)(nil),                                 // 43: byte.v.forge.contracts.sms.v1.SmsCountry
+	(*v1.SmsPriceOffer)(nil),                              // 44: byte.v.forge.contracts.sms.v1.SmsPriceOffer
+	(*v1.SmsCodeReceivedEvent)(nil),                       // 45: byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent
 }
 var file_byte_v_forge_sms_internal_v1_sms_internal_proto_depIdxs = []int32{
-	30, // 0: byte.v.forge.sms.internal.v1.ProviderError.public_error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	31, // 1: byte.v.forge.sms.internal.v1.ProviderActivation.public_activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	35, // 0: byte.v.forge.sms.internal.v1.ProviderError.public_error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	36, // 1: byte.v.forge.sms.internal.v1.ProviderActivation.public_activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
 	0,  // 2: byte.v.forge.sms.internal.v1.ProviderActivation.last_provider_error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	32, // 3: byte.v.forge.sms.internal.v1.ProviderActivation.raw_metadata:type_name -> google.protobuf.Struct
-	33, // 4: byte.v.forge.sms.internal.v1.SmsProviderConfig.default_target:type_name -> byte.v.forge.contracts.sms.v1.SmsTarget
+	37, // 3: byte.v.forge.sms.internal.v1.ProviderActivation.raw_metadata:type_name -> google.protobuf.Struct
+	38, // 4: byte.v.forge.sms.internal.v1.SmsProviderConfig.default_target:type_name -> byte.v.forge.contracts.sms.v1.SmsTarget
 	3,  // 5: byte.v.forge.sms.internal.v1.SmsProviderConfig.capabilities:type_name -> byte.v.forge.sms.internal.v1.SmsProviderCapabilities
-	29, // 6: byte.v.forge.sms.internal.v1.SmsProviderConfig.labels:type_name -> byte.v.forge.sms.internal.v1.SmsProviderConfig.LabelsEntry
-	34, // 7: byte.v.forge.sms.internal.v1.SmsProviderConfig.created_at:type_name -> google.protobuf.Timestamp
-	34, // 8: byte.v.forge.sms.internal.v1.SmsProviderConfig.updated_at:type_name -> google.protobuf.Timestamp
+	34, // 6: byte.v.forge.sms.internal.v1.SmsProviderConfig.labels:type_name -> byte.v.forge.sms.internal.v1.SmsProviderConfig.LabelsEntry
+	39, // 7: byte.v.forge.sms.internal.v1.SmsProviderConfig.created_at:type_name -> google.protobuf.Timestamp
+	39, // 8: byte.v.forge.sms.internal.v1.SmsProviderConfig.updated_at:type_name -> google.protobuf.Timestamp
 	2,  // 9: byte.v.forge.sms.internal.v1.UpsertProviderConfigRequest.config:type_name -> byte.v.forge.sms.internal.v1.SmsProviderConfig
 	2,  // 10: byte.v.forge.sms.internal.v1.UpsertProviderConfigResponse.config:type_name -> byte.v.forge.sms.internal.v1.SmsProviderConfig
 	0,  // 11: byte.v.forge.sms.internal.v1.UpsertProviderConfigResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
@@ -2020,55 +2392,65 @@ var file_byte_v_forge_sms_internal_v1_sms_internal_proto_depIdxs = []int32{
 	2,  // 14: byte.v.forge.sms.internal.v1.ListProviderConfigsResponse.configs:type_name -> byte.v.forge.sms.internal.v1.SmsProviderConfig
 	0,  // 15: byte.v.forge.sms.internal.v1.ListProviderConfigsResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
 	0,  // 16: byte.v.forge.sms.internal.v1.DeleteProviderConfigResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	35, // 17: byte.v.forge.sms.internal.v1.GetProviderBalanceResponse.balance:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
+	40, // 17: byte.v.forge.sms.internal.v1.GetProviderBalanceResponse.balance:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
 	0,  // 18: byte.v.forge.sms.internal.v1.GetProviderBalanceResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	36, // 19: byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo.public_application:type_name -> byte.v.forge.contracts.sms.v1.SmsApplicationInfo
-	32, // 20: byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo.raw_metadata:type_name -> google.protobuf.Struct
-	37, // 21: byte.v.forge.sms.internal.v1.ProviderSmsCountry.public_country:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry
-	32, // 22: byte.v.forge.sms.internal.v1.ProviderSmsCountry.raw_metadata:type_name -> google.protobuf.Struct
-	38, // 23: byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer.public_offer:type_name -> byte.v.forge.contracts.sms.v1.SmsPriceOffer
-	32, // 24: byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer.raw_metadata:type_name -> google.protobuf.Struct
-	15, // 25: byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary.country:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsCountry
-	16, // 26: byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary.offers:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer
-	14, // 27: byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse.applications:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo
-	0,  // 28: byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	15, // 29: byte.v.forge.sms.internal.v1.ListProviderCountriesResponse.countries:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsCountry
-	0,  // 30: byte.v.forge.sms.internal.v1.ListProviderCountriesResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	16, // 31: byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse.offers:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer
-	0,  // 32: byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	17, // 33: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse.countries:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary
-	0,  // 34: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	34, // 35: byte.v.forge.sms.internal.v1.InboundProviderMessage.received_at:type_name -> google.protobuf.Timestamp
-	32, // 36: byte.v.forge.sms.internal.v1.InboundProviderMessage.raw_payload:type_name -> google.protobuf.Struct
-	26, // 37: byte.v.forge.sms.internal.v1.IngestInboundMessageRequest.message:type_name -> byte.v.forge.sms.internal.v1.InboundProviderMessage
-	1,  // 38: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse.activation:type_name -> byte.v.forge.sms.internal.v1.ProviderActivation
-	39, // 39: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse.public_event:type_name -> byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent
-	0,  // 40: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
-	4,  // 41: byte.v.forge.sms.internal.v1.SmsProviderAdminService.UpsertProviderConfig:input_type -> byte.v.forge.sms.internal.v1.UpsertProviderConfigRequest
-	6,  // 42: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderConfig:input_type -> byte.v.forge.sms.internal.v1.GetProviderConfigRequest
-	8,  // 43: byte.v.forge.sms.internal.v1.SmsProviderAdminService.ListProviderConfigs:input_type -> byte.v.forge.sms.internal.v1.ListProviderConfigsRequest
-	10, // 44: byte.v.forge.sms.internal.v1.SmsProviderAdminService.DeleteProviderConfig:input_type -> byte.v.forge.sms.internal.v1.DeleteProviderConfigRequest
-	12, // 45: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderBalance:input_type -> byte.v.forge.sms.internal.v1.GetProviderBalanceRequest
-	18, // 46: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderApplications:input_type -> byte.v.forge.sms.internal.v1.ListProviderApplicationsRequest
-	20, // 47: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderCountries:input_type -> byte.v.forge.sms.internal.v1.ListProviderCountriesRequest
-	22, // 48: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderPriceOffers:input_type -> byte.v.forge.sms.internal.v1.ListProviderPriceOffersRequest
-	24, // 49: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListTopProviderCountriesByApplication:input_type -> byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationRequest
-	27, // 50: byte.v.forge.sms.internal.v1.SmsWebhookIngestService.IngestInboundMessage:input_type -> byte.v.forge.sms.internal.v1.IngestInboundMessageRequest
-	5,  // 51: byte.v.forge.sms.internal.v1.SmsProviderAdminService.UpsertProviderConfig:output_type -> byte.v.forge.sms.internal.v1.UpsertProviderConfigResponse
-	7,  // 52: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderConfig:output_type -> byte.v.forge.sms.internal.v1.GetProviderConfigResponse
-	9,  // 53: byte.v.forge.sms.internal.v1.SmsProviderAdminService.ListProviderConfigs:output_type -> byte.v.forge.sms.internal.v1.ListProviderConfigsResponse
-	11, // 54: byte.v.forge.sms.internal.v1.SmsProviderAdminService.DeleteProviderConfig:output_type -> byte.v.forge.sms.internal.v1.DeleteProviderConfigResponse
-	13, // 55: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderBalance:output_type -> byte.v.forge.sms.internal.v1.GetProviderBalanceResponse
-	19, // 56: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderApplications:output_type -> byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse
-	21, // 57: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderCountries:output_type -> byte.v.forge.sms.internal.v1.ListProviderCountriesResponse
-	23, // 58: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderPriceOffers:output_type -> byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse
-	25, // 59: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListTopProviderCountriesByApplication:output_type -> byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse
-	28, // 60: byte.v.forge.sms.internal.v1.SmsWebhookIngestService.IngestInboundMessage:output_type -> byte.v.forge.sms.internal.v1.IngestInboundMessageResponse
-	51, // [51:61] is the sub-list for method output_type
-	41, // [41:51] is the sub-list for method input_type
-	41, // [41:41] is the sub-list for extension type_name
-	41, // [41:41] is the sub-list for extension extendee
-	0,  // [0:41] is the sub-list for field type_name
+	36, // 19: byte.v.forge.sms.internal.v1.SmsActivationView.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	41, // 20: byte.v.forge.sms.internal.v1.SmsActivationView.latest_code:type_name -> byte.v.forge.contracts.sms.v1.SmsCode
+	14, // 21: byte.v.forge.sms.internal.v1.ListActivationsResponse.activations:type_name -> byte.v.forge.sms.internal.v1.SmsActivationView
+	0,  // 22: byte.v.forge.sms.internal.v1.ListActivationsResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
+	14, // 23: byte.v.forge.sms.internal.v1.CancelProviderActivationResponse.activation:type_name -> byte.v.forge.sms.internal.v1.SmsActivationView
+	0,  // 24: byte.v.forge.sms.internal.v1.CancelProviderActivationResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
+	42, // 25: byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo.public_application:type_name -> byte.v.forge.contracts.sms.v1.SmsApplicationInfo
+	37, // 26: byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo.raw_metadata:type_name -> google.protobuf.Struct
+	43, // 27: byte.v.forge.sms.internal.v1.ProviderSmsCountry.public_country:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry
+	37, // 28: byte.v.forge.sms.internal.v1.ProviderSmsCountry.raw_metadata:type_name -> google.protobuf.Struct
+	44, // 29: byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer.public_offer:type_name -> byte.v.forge.contracts.sms.v1.SmsPriceOffer
+	37, // 30: byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer.raw_metadata:type_name -> google.protobuf.Struct
+	20, // 31: byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary.country:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsCountry
+	21, // 32: byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary.offers:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer
+	19, // 33: byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse.applications:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsApplicationInfo
+	0,  // 34: byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
+	20, // 35: byte.v.forge.sms.internal.v1.ListProviderCountriesResponse.countries:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsCountry
+	0,  // 36: byte.v.forge.sms.internal.v1.ListProviderCountriesResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
+	21, // 37: byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse.offers:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsPriceOffer
+	0,  // 38: byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
+	22, // 39: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse.countries:type_name -> byte.v.forge.sms.internal.v1.ProviderSmsCountryPriceSummary
+	0,  // 40: byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
+	39, // 41: byte.v.forge.sms.internal.v1.InboundProviderMessage.received_at:type_name -> google.protobuf.Timestamp
+	37, // 42: byte.v.forge.sms.internal.v1.InboundProviderMessage.raw_payload:type_name -> google.protobuf.Struct
+	31, // 43: byte.v.forge.sms.internal.v1.IngestInboundMessageRequest.message:type_name -> byte.v.forge.sms.internal.v1.InboundProviderMessage
+	1,  // 44: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse.activation:type_name -> byte.v.forge.sms.internal.v1.ProviderActivation
+	45, // 45: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse.public_event:type_name -> byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent
+	0,  // 46: byte.v.forge.sms.internal.v1.IngestInboundMessageResponse.error:type_name -> byte.v.forge.sms.internal.v1.ProviderError
+	4,  // 47: byte.v.forge.sms.internal.v1.SmsProviderAdminService.UpsertProviderConfig:input_type -> byte.v.forge.sms.internal.v1.UpsertProviderConfigRequest
+	6,  // 48: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderConfig:input_type -> byte.v.forge.sms.internal.v1.GetProviderConfigRequest
+	8,  // 49: byte.v.forge.sms.internal.v1.SmsProviderAdminService.ListProviderConfigs:input_type -> byte.v.forge.sms.internal.v1.ListProviderConfigsRequest
+	10, // 50: byte.v.forge.sms.internal.v1.SmsProviderAdminService.DeleteProviderConfig:input_type -> byte.v.forge.sms.internal.v1.DeleteProviderConfigRequest
+	12, // 51: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderBalance:input_type -> byte.v.forge.sms.internal.v1.GetProviderBalanceRequest
+	15, // 52: byte.v.forge.sms.internal.v1.SmsProviderAdminService.ListActivations:input_type -> byte.v.forge.sms.internal.v1.ListActivationsRequest
+	17, // 53: byte.v.forge.sms.internal.v1.SmsProviderAdminService.CancelActivation:input_type -> byte.v.forge.sms.internal.v1.CancelProviderActivationRequest
+	23, // 54: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderApplications:input_type -> byte.v.forge.sms.internal.v1.ListProviderApplicationsRequest
+	25, // 55: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderCountries:input_type -> byte.v.forge.sms.internal.v1.ListProviderCountriesRequest
+	27, // 56: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderPriceOffers:input_type -> byte.v.forge.sms.internal.v1.ListProviderPriceOffersRequest
+	29, // 57: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListTopProviderCountriesByApplication:input_type -> byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationRequest
+	32, // 58: byte.v.forge.sms.internal.v1.SmsWebhookIngestService.IngestInboundMessage:input_type -> byte.v.forge.sms.internal.v1.IngestInboundMessageRequest
+	5,  // 59: byte.v.forge.sms.internal.v1.SmsProviderAdminService.UpsertProviderConfig:output_type -> byte.v.forge.sms.internal.v1.UpsertProviderConfigResponse
+	7,  // 60: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderConfig:output_type -> byte.v.forge.sms.internal.v1.GetProviderConfigResponse
+	9,  // 61: byte.v.forge.sms.internal.v1.SmsProviderAdminService.ListProviderConfigs:output_type -> byte.v.forge.sms.internal.v1.ListProviderConfigsResponse
+	11, // 62: byte.v.forge.sms.internal.v1.SmsProviderAdminService.DeleteProviderConfig:output_type -> byte.v.forge.sms.internal.v1.DeleteProviderConfigResponse
+	13, // 63: byte.v.forge.sms.internal.v1.SmsProviderAdminService.GetProviderBalance:output_type -> byte.v.forge.sms.internal.v1.GetProviderBalanceResponse
+	16, // 64: byte.v.forge.sms.internal.v1.SmsProviderAdminService.ListActivations:output_type -> byte.v.forge.sms.internal.v1.ListActivationsResponse
+	18, // 65: byte.v.forge.sms.internal.v1.SmsProviderAdminService.CancelActivation:output_type -> byte.v.forge.sms.internal.v1.CancelProviderActivationResponse
+	24, // 66: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderApplications:output_type -> byte.v.forge.sms.internal.v1.ListProviderApplicationsResponse
+	26, // 67: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderCountries:output_type -> byte.v.forge.sms.internal.v1.ListProviderCountriesResponse
+	28, // 68: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListProviderPriceOffers:output_type -> byte.v.forge.sms.internal.v1.ListProviderPriceOffersResponse
+	30, // 69: byte.v.forge.sms.internal.v1.SmsProviderCatalogService.ListTopProviderCountriesByApplication:output_type -> byte.v.forge.sms.internal.v1.ListTopProviderCountriesByApplicationResponse
+	33, // 70: byte.v.forge.sms.internal.v1.SmsWebhookIngestService.IngestInboundMessage:output_type -> byte.v.forge.sms.internal.v1.IngestInboundMessageResponse
+	59, // [59:71] is the sub-list for method output_type
+	47, // [47:59] is the sub-list for method input_type
+	47, // [47:47] is the sub-list for extension type_name
+	47, // [47:47] is the sub-list for extension extendee
+	0,  // [0:47] is the sub-list for field type_name
 }
 
 func init() { file_byte_v_forge_sms_internal_v1_sms_internal_proto_init() }
@@ -2082,7 +2464,7 @@ func file_byte_v_forge_sms_internal_v1_sms_internal_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDesc), len(file_byte_v_forge_sms_internal_v1_sms_internal_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   30,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

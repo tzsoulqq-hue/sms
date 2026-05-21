@@ -115,11 +115,11 @@ func (c *Client) Policy() core.ProviderPolicy {
 }
 
 func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquireRequest) (core.ProviderActivation, error) {
-	country := strings.TrimSpace(request.Route.ProviderCountryID)
-	if country == "" {
-		return core.ProviderActivation{}, core.NewError(core.CodeValidationFailed, "5sim country is required", false)
+	country, err := c.countryForRoute(ctx, request)
+	if err != nil {
+		return core.ProviderActivation{}, err
 	}
-	product := strings.TrimSpace(request.Route.UpstreamServiceKey)
+	product := firstNonEmpty(request.Route.UpstreamServiceKey, request.Target.ApplicationKey)
 	if product == "" {
 		return core.ProviderActivation{}, core.NewError(core.CodeValidationFailed, "5sim product is required", false)
 	}
@@ -149,6 +149,50 @@ func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquire
 		AcquiredAt: parseTime(payload.CreatedAt),
 		ExpiresAt:  parseTime(payload.Expires),
 	}, nil
+}
+
+func (c *Client) countryForRoute(ctx context.Context, request core.ProviderAcquireRequest) (string, error) {
+	country := strings.TrimSpace(request.Route.ProviderCountryID)
+	if country != "" && !isNeutralCountryValue(country, request.Target) {
+		return country, nil
+	}
+	resolved, err := c.resolveCountryID(ctx, request.Target)
+	if err == nil && resolved != "" {
+		return resolved, nil
+	}
+	if country != "" && err == nil {
+		return country, nil
+	}
+	if err != nil {
+		return "", err
+	}
+	return "", core.NewError(core.CodeValidationFailed, "5sim country is required", false)
+}
+
+func (c *Client) resolveCountryID(ctx context.Context, target core.Target) (string, error) {
+	iso2 := strings.ToUpper(strings.TrimSpace(target.CountryISO2))
+	callingCode := strings.TrimPrefix(strings.TrimSpace(target.CountryCallingCode), "+")
+	if iso2 == "" && callingCode == "" {
+		return "", nil
+	}
+	countries, err := c.ListCountries(ctx)
+	if err != nil {
+		return "", err
+	}
+	for _, country := range countries {
+		if iso2 != "" && strings.EqualFold(country.CountryISO2, iso2) {
+			return country.CountryID, nil
+		}
+		if callingCode != "" && strings.TrimPrefix(country.CountryCallingCode, "+") == callingCode {
+			return country.CountryID, nil
+		}
+	}
+	return "", core.NewError(core.CodeRouteNotFound, "5sim country not found for sms target", false)
+}
+
+func isNeutralCountryValue(value string, target core.Target) bool {
+	value = strings.TrimSpace(value)
+	return value != "" && (strings.EqualFold(value, target.CountryISO2) || value == strings.TrimPrefix(target.CountryCallingCode, "+"))
 }
 
 func (c *Client) GetStatus(ctx context.Context, upstreamActivationID string) (core.ProviderCodeResult, error) {

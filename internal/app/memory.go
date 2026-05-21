@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -51,6 +52,25 @@ func (s *MemoryActivationStore) Update(_ context.Context, activation core.Activa
 	return nil
 }
 
+func (s *MemoryActivationStore) List(_ context.Context, includeFinal bool, limit int) ([]core.Activation, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]core.Activation, 0, len(s.activations))
+	for _, activation := range s.activations {
+		if !includeFinal && activation.Status.IsFinal() {
+			continue
+		}
+		out = append(out, activation)
+	}
+	sort.Slice(out, func(i, j int) bool {
+		return out[i].UpdatedAt.After(out[j].UpdatedAt)
+	})
+	if limit > 0 && len(out) > limit {
+		out = out[:limit]
+	}
+	return out, nil
+}
+
 type StaticRouteResolver struct {
 	routes []core.Route
 }
@@ -59,15 +79,18 @@ func NewStaticRouteResolver(routes []core.Route) *StaticRouteResolver {
 	return &StaticRouteResolver{routes: append([]core.Route(nil), routes...)}
 }
 
-func (r *StaticRouteResolver) Resolve(_ context.Context, target core.Target) (core.Route, error) {
+func (r *StaticRouteResolver) Resolve(_ context.Context, request core.RouteRequest) (core.Route, error) {
 	for _, route := range r.routes {
-		if !sameFoldOrEmpty(route.ApplicationKey, target.ApplicationKey) {
+		if !sameFoldOrEmpty(request.ProviderKey, route.ProviderKey) {
 			continue
 		}
-		if !sameFoldOrEmpty(route.CountryISO2, target.CountryISO2) {
+		if !sameFoldOrEmpty(route.ApplicationKey, request.Target.ApplicationKey) {
 			continue
 		}
-		if route.CountryCallingCode != "" && target.CountryCallingCode != "" && route.CountryCallingCode != target.CountryCallingCode {
+		if !sameFoldOrEmpty(route.CountryISO2, request.Target.CountryISO2) {
+			continue
+		}
+		if route.CountryCallingCode != "" && request.Target.CountryCallingCode != "" && route.CountryCallingCode != request.Target.CountryCallingCode {
 			continue
 		}
 		return route, nil

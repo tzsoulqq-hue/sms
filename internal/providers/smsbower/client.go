@@ -63,6 +63,16 @@ func (c *Client) Policy() core.ProviderPolicy {
 }
 
 func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquireRequest) (core.ProviderActivation, error) {
+	service := firstNonEmpty(request.Route.UpstreamServiceKey, request.Target.ApplicationKey)
+	if service == "" {
+		return core.ProviderActivation{}, core.NewError(core.CodeValidationFailed, "smsbower service is required", false)
+	}
+	country, err := c.countryForRoute(ctx, request)
+	if err != nil {
+		return core.ProviderActivation{}, err
+	}
+	request.Route.UpstreamServiceKey = service
+	request.Route.ProviderCountryID = country
 	if c.requiresGetNumber(request) {
 		params := c.acquireParams(request, false)
 		result, err := c.api.Do(ctx, "getNumber", params)
@@ -129,6 +139,59 @@ func (c *Client) GetBalance(ctx context.Context) (core.Money, error) {
 		return core.Money{}, handlerapi.MapTextError(result)
 	}
 	return core.Money{AmountDecimal: strings.TrimPrefix(result, prefix)}, nil
+}
+
+func (c *Client) countryForRoute(ctx context.Context, request core.ProviderAcquireRequest) (string, error) {
+	if country := strings.TrimSpace(request.Route.ProviderCountryID); country != "" {
+		return country, nil
+	}
+	aliases := countryAliases(request.Target)
+	if len(aliases) == 0 {
+		return "", core.NewError(core.CodeValidationFailed, "smsbower provider country id is required", false)
+	}
+	countries, err := c.ListCountries(ctx)
+	if err != nil {
+		return "", err
+	}
+	for _, country := range countries {
+		if matchesCountryAlias(country.Name, aliases) {
+			return country.CountryID, nil
+		}
+	}
+	return "", core.NewError(core.CodeRouteNotFound, "smsbower country not found for sms target", false)
+}
+
+func countryAliases(target core.Target) map[string]bool {
+	aliases := map[string]bool{}
+	switch strings.ToUpper(strings.TrimSpace(target.CountryISO2)) {
+	case "ID":
+		aliases["indonesia"] = true
+	}
+	switch strings.TrimPrefix(strings.TrimSpace(target.CountryCallingCode), "+") {
+	case "62":
+		aliases["indonesia"] = true
+	}
+	if len(aliases) == 0 {
+		return nil
+	}
+	return aliases
+}
+
+func normalizeCountryName(value string) string {
+	return strings.ToLower(strings.TrimSpace(value))
+}
+
+func matchesCountryAlias(name string, aliases map[string]bool) bool {
+	normalized := normalizeCountryName(name)
+	if aliases[normalized] {
+		return true
+	}
+	for alias := range aliases {
+		if strings.Contains(normalized, alias) {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *Client) acquireParams(request core.ProviderAcquireRequest, v2 bool) url.Values {

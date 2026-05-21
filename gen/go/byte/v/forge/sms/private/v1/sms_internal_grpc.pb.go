@@ -24,6 +24,8 @@ const (
 	SmsProviderAdminService_ListProviderConfigs_FullMethodName  = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/ListProviderConfigs"
 	SmsProviderAdminService_DeleteProviderConfig_FullMethodName = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/DeleteProviderConfig"
 	SmsProviderAdminService_GetProviderBalance_FullMethodName   = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/GetProviderBalance"
+	SmsProviderAdminService_ListActivations_FullMethodName      = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/ListActivations"
+	SmsProviderAdminService_CancelActivation_FullMethodName     = "/byte.v.forge.sms.internal.v1.SmsProviderAdminService/CancelActivation"
 )
 
 // SmsProviderAdminServiceClient is the client API for SmsProviderAdminService service.
@@ -35,6 +37,8 @@ type SmsProviderAdminServiceClient interface {
 	ListProviderConfigs(ctx context.Context, in *ListProviderConfigsRequest, opts ...grpc.CallOption) (*ListProviderConfigsResponse, error)
 	DeleteProviderConfig(ctx context.Context, in *DeleteProviderConfigRequest, opts ...grpc.CallOption) (*DeleteProviderConfigResponse, error)
 	GetProviderBalance(ctx context.Context, in *GetProviderBalanceRequest, opts ...grpc.CallOption) (*GetProviderBalanceResponse, error)
+	ListActivations(ctx context.Context, in *ListActivationsRequest, opts ...grpc.CallOption) (*ListActivationsResponse, error)
+	CancelActivation(ctx context.Context, in *CancelProviderActivationRequest, opts ...grpc.CallOption) (*CancelProviderActivationResponse, error)
 }
 
 type smsProviderAdminServiceClient struct {
@@ -95,6 +99,26 @@ func (c *smsProviderAdminServiceClient) GetProviderBalance(ctx context.Context, 
 	return out, nil
 }
 
+func (c *smsProviderAdminServiceClient) ListActivations(ctx context.Context, in *ListActivationsRequest, opts ...grpc.CallOption) (*ListActivationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListActivationsResponse)
+	err := c.cc.Invoke(ctx, SmsProviderAdminService_ListActivations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *smsProviderAdminServiceClient) CancelActivation(ctx context.Context, in *CancelProviderActivationRequest, opts ...grpc.CallOption) (*CancelProviderActivationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CancelProviderActivationResponse)
+	err := c.cc.Invoke(ctx, SmsProviderAdminService_CancelActivation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SmsProviderAdminServiceServer is the server API for SmsProviderAdminService service.
 // All implementations must embed UnimplementedSmsProviderAdminServiceServer
 // for forward compatibility.
@@ -104,6 +128,8 @@ type SmsProviderAdminServiceServer interface {
 	ListProviderConfigs(context.Context, *ListProviderConfigsRequest) (*ListProviderConfigsResponse, error)
 	DeleteProviderConfig(context.Context, *DeleteProviderConfigRequest) (*DeleteProviderConfigResponse, error)
 	GetProviderBalance(context.Context, *GetProviderBalanceRequest) (*GetProviderBalanceResponse, error)
+	ListActivations(context.Context, *ListActivationsRequest) (*ListActivationsResponse, error)
+	CancelActivation(context.Context, *CancelProviderActivationRequest) (*CancelProviderActivationResponse, error)
 	mustEmbedUnimplementedSmsProviderAdminServiceServer()
 }
 
@@ -128,6 +154,12 @@ func (UnimplementedSmsProviderAdminServiceServer) DeleteProviderConfig(context.C
 }
 func (UnimplementedSmsProviderAdminServiceServer) GetProviderBalance(context.Context, *GetProviderBalanceRequest) (*GetProviderBalanceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetProviderBalance not implemented")
+}
+func (UnimplementedSmsProviderAdminServiceServer) ListActivations(context.Context, *ListActivationsRequest) (*ListActivationsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListActivations not implemented")
+}
+func (UnimplementedSmsProviderAdminServiceServer) CancelActivation(context.Context, *CancelProviderActivationRequest) (*CancelProviderActivationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CancelActivation not implemented")
 }
 func (UnimplementedSmsProviderAdminServiceServer) mustEmbedUnimplementedSmsProviderAdminServiceServer() {
 }
@@ -241,6 +273,42 @@ func _SmsProviderAdminService_GetProviderBalance_Handler(srv interface{}, ctx co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SmsProviderAdminService_ListActivations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListActivationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmsProviderAdminServiceServer).ListActivations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SmsProviderAdminService_ListActivations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmsProviderAdminServiceServer).ListActivations(ctx, req.(*ListActivationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SmsProviderAdminService_CancelActivation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CancelProviderActivationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SmsProviderAdminServiceServer).CancelActivation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SmsProviderAdminService_CancelActivation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SmsProviderAdminServiceServer).CancelActivation(ctx, req.(*CancelProviderActivationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SmsProviderAdminService_ServiceDesc is the grpc.ServiceDesc for SmsProviderAdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -267,6 +335,14 @@ var SmsProviderAdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProviderBalance",
 			Handler:    _SmsProviderAdminService_GetProviderBalance_Handler,
+		},
+		{
+			MethodName: "ListActivations",
+			Handler:    _SmsProviderAdminService_ListActivations_Handler,
+		},
+		{
+			MethodName: "CancelActivation",
+			Handler:    _SmsProviderAdminService_CancelActivation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

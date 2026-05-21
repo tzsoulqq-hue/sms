@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
-	"strconv"
 
 	"github.com/byte-v-forge/sms/internal/core"
 	"github.com/byte-v-forge/sms/internal/providers/handlerapi"
@@ -64,18 +63,18 @@ func (c *Client) ListCountries(ctx context.Context) ([]Country, error) {
 		return nil, err
 	}
 	var raw map[string]struct {
-		ID  int    `json:"id"`
-		Rus string `json:"rus"`
-		Eng string `json:"eng"`
-		Chn string `json:"chn"`
+		ID  json.RawMessage `json:"id"`
+		Rus string          `json:"rus"`
+		Eng string          `json:"eng"`
+		Chn string          `json:"chn"`
 	}
 	if err := decodeJSONObject(result, &raw); err != nil {
 		return nil, err
 	}
 	countries := make([]Country, 0, len(raw))
 	for key, item := range raw {
-		id := strconv.Itoa(item.ID)
-		if id == "0" {
+		id := rawJSONScalar(item.ID)
+		if id == "" || id == "0" {
 			id = key
 		}
 		name := firstNonEmpty(item.Eng, item.Chn, item.Rus, key)

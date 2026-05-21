@@ -14,7 +14,7 @@ type IDGenerator interface {
 }
 
 type RouteResolver interface {
-	Resolve(ctx context.Context, target Target) (Route, error)
+	Resolve(ctx context.Context, request RouteRequest) (Route, error)
 }
 
 type ActivationStore interface {

@@ -120,6 +120,10 @@ message AcquireNumberRequest {
   string request_id = 1;
   SmsTarget target = 2;
   google.protobuf.Duration lease_duration = 3;
+  // Optional exact provider config to use. When set, routing does not auto-pick a provider.
+  string provider_config_id = 4;
+  // Optional provider key, for example "herosms" or "smsbower".
+  string provider_key = 5;
   map<string, string> labels = 20;
 }
 

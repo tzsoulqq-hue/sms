@@ -19,10 +19,12 @@ func NewActivationServer(service *app.ActivationService) *ActivationServer {
 
 func (s *ActivationServer) AcquireNumber(ctx context.Context, request *smsv1.AcquireNumberRequest) (*smsv1.AcquireNumberResponse, error) {
 	activation, err := s.service.AcquireNumber(ctx, core.AcquireNumberCommand{
-		RequestID:     request.GetRequestId(),
-		Target:        fromProtoTarget(request.GetTarget()),
-		LeaseDuration: protoDuration(request.GetLeaseDuration()),
-		Labels:        request.GetLabels(),
+		RequestID:        request.GetRequestId(),
+		ProviderConfigID: request.GetProviderConfigId(),
+		ProviderKey:      request.GetProviderKey(),
+		Target:           fromProtoTarget(request.GetTarget()),
+		LeaseDuration:    protoDuration(request.GetLeaseDuration()),
+		Labels:           request.GetLabels(),
 	})
 	if err != nil {
 		return &smsv1.AcquireNumberResponse{Error: toProtoError(err)}, nil
