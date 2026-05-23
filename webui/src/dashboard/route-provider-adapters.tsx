@@ -20,9 +20,9 @@ export function ProviderRouteFields({ route, options, onChange }: Props) {
 }
 
 function FieldInput({ field, route, options, onChange }: Props & { field: RouteField }) {
-  const value = readField(route, field);
-  const choices = field.options ? options?.[field.options] || [] : [];
-  return (
+	const value = readField(route, field);
+	const choices = field.options ? (options?.[field.options] || []).filter((item) => item.value) : [];
+	return (
     <div className="grid gap-1">
       <Label>{field.label}</Label>
       {field.options ? (
