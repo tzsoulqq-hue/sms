@@ -245,7 +245,7 @@ func (c *Client) acquireParams(request core.ProviderAcquireRequest, v2 bool) url
 	params.Set("service", request.Route.UpstreamServiceKey)
 	params.Set("country", request.Route.ProviderCountryID)
 	setMoney(params, "maxPrice", firstMoney(request.Target.MaxPrice, request.Route.MaxPrice))
-	setMoney(params, "minPrice", request.Route.MinPrice)
+	setMoney(params, "minPrice", firstMoney(request.Target.MinPrice, request.Route.MinPrice))
 	if len(request.Route.IncludeUpstreamProviderID) > 0 {
 		params.Set("providerIds", strings.Join(request.Route.IncludeUpstreamProviderID, ","))
 	}

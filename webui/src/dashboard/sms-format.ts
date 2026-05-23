@@ -31,7 +31,7 @@ export function newSmsRouteProfile(): SmsRouteProfile {
     enabled: true,
     selection_strategy: SmsRouteSelectionStrategy.SMS_ROUTE_SELECTION_STRATEGY_PRIORITY,
     preferred_provider_key: '',
-    default_target: { application_key: '', country_iso2: '', country_calling_code: '', max_price: undefined },
+    default_target: { application_key: '', country_iso2: '', country_calling_code: '', min_price: undefined, max_price: undefined },
     routes: [newSmsRouteCandidate()],
     labels: {},
     created_at: undefined,
@@ -48,7 +48,7 @@ export function newSmsRouteCandidate(providerKey = 'smsbower'): SmsRouteCandidat
     provider_key: providerKey,
     upstream_service_key: '',
     provider_country_id: '',
-    target: { application_key: '', country_iso2: '', country_calling_code: '', max_price: undefined },
+    target: { application_key: '', country_iso2: '', country_calling_code: '', min_price: undefined, max_price: undefined },
     min_price: undefined,
     max_price: undefined,
     provider_options: {}

@@ -289,6 +289,7 @@ func routeFromProviderConfig(config *smsinternalv1.SmsProviderConfig, requestTar
 		CountryISO2:        target.CountryISO2,
 		CountryCallingCode: target.CountryCallingCode,
 		ProviderCountryID:  config.GetProviderCountryId(),
+		MinPrice:           target.MinPrice,
 		MaxPrice:           target.MaxPrice,
 		ProviderOptions:    options,
 	}
@@ -324,6 +325,7 @@ func targetFromProto(value *smsv1.SmsTarget) core.Target {
 		ApplicationKey:     strings.TrimSpace(value.GetApplicationKey()),
 		CountryISO2:        strings.ToUpper(strings.TrimSpace(value.GetCountryIso2())),
 		CountryCallingCode: strings.TrimPrefix(strings.TrimSpace(value.GetCountryCallingCode()), "+"),
+		MinPrice:           moneyFromProto(value.GetMinPrice()),
 		MaxPrice:           moneyFromProto(value.GetMaxPrice()),
 	}
 }
@@ -337,6 +339,9 @@ func mergeRouteTarget(primary core.Target, fallback core.Target) core.Target {
 	}
 	if primary.CountryCallingCode == "" {
 		primary.CountryCallingCode = fallback.CountryCallingCode
+	}
+	if primary.MinPrice.AmountDecimal == "" && primary.MinPrice.CurrencyCode == "" {
+		primary.MinPrice = fallback.MinPrice
 	}
 	if primary.MaxPrice.AmountDecimal == "" && primary.MaxPrice.CurrencyCode == "" {
 		primary.MaxPrice = fallback.MaxPrice

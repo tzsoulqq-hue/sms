@@ -498,6 +498,9 @@ func withRouteTargetDefaults(target core.Target, route core.Route) core.Target {
 	if target.CountryCallingCode == "" {
 		target.CountryCallingCode = route.CountryCallingCode
 	}
+	if target.MinPrice.AmountDecimal == "" && target.MinPrice.CurrencyCode == "" {
+		target.MinPrice = route.MinPrice
+	}
 	if target.MaxPrice.AmountDecimal == "" && target.MaxPrice.CurrencyCode == "" {
 		target.MaxPrice = route.MaxPrice
 	}

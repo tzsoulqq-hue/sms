@@ -373,6 +373,7 @@ type SmsTarget struct {
 	// Numeric country calling code without "+".
 	CountryCallingCode string        `protobuf:"bytes,3,opt,name=country_calling_code,json=countryCallingCode,proto3" json:"country_calling_code,omitempty"`
 	MaxPrice           *DecimalMoney `protobuf:"bytes,4,opt,name=max_price,json=maxPrice,proto3" json:"max_price,omitempty"`
+	MinPrice           *DecimalMoney `protobuf:"bytes,5,opt,name=min_price,json=minPrice,proto3" json:"min_price,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -431,6 +432,13 @@ func (x *SmsTarget) GetCountryCallingCode() string {
 func (x *SmsTarget) GetMaxPrice() *DecimalMoney {
 	if x != nil {
 		return x.MaxPrice
+	}
+	return nil
+}
+
+func (x *SmsTarget) GetMinPrice() *DecimalMoney {
+	if x != nil {
+		return x.MinPrice
 	}
 	return nil
 }
@@ -2352,12 +2360,13 @@ const file_byte_v_forge_contracts_sms_v1_sms_proto_rawDesc = "" +
 	"e164Number\x12'\n" +
 	"\x0fnational_number\x18\x02 \x01(\tR\x0enationalNumber\x12!\n" +
 	"\fcountry_iso2\x18\x03 \x01(\tR\vcountryIso2\x120\n" +
-	"\x14country_calling_code\x18\x04 \x01(\tR\x12countryCallingCode\"\xd3\x01\n" +
+	"\x14country_calling_code\x18\x04 \x01(\tR\x12countryCallingCode\"\x9d\x02\n" +
 	"\tSmsTarget\x12'\n" +
 	"\x0fapplication_key\x18\x01 \x01(\tR\x0eapplicationKey\x12!\n" +
 	"\fcountry_iso2\x18\x02 \x01(\tR\vcountryIso2\x120\n" +
 	"\x14country_calling_code\x18\x03 \x01(\tR\x12countryCallingCode\x12H\n" +
-	"\tmax_price\x18\x04 \x01(\v2+.byte.v.forge.contracts.sms.v1.DecimalMoneyR\bmaxPrice\"\\\n" +
+	"\tmax_price\x18\x04 \x01(\v2+.byte.v.forge.contracts.sms.v1.DecimalMoneyR\bmaxPrice\x12H\n" +
+	"\tmin_price\x18\x05 \x01(\v2+.byte.v.forge.contracts.sms.v1.DecimalMoneyR\bminPrice\"\\\n" +
 	"\aSmsCode\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\x12;\n" +
 	"\vreceived_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
@@ -2632,87 +2641,88 @@ var file_byte_v_forge_contracts_sms_v1_sms_proto_goTypes = []any{
 var file_byte_v_forge_contracts_sms_v1_sms_proto_depIdxs = []int32{
 	1,  // 0: byte.v.forge.contracts.sms.v1.SmsError.code:type_name -> byte.v.forge.contracts.sms.v1.SmsErrorCode
 	3,  // 1: byte.v.forge.contracts.sms.v1.SmsTarget.max_price:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
-	42, // 2: byte.v.forge.contracts.sms.v1.SmsCode.received_at:type_name -> google.protobuf.Timestamp
-	5,  // 3: byte.v.forge.contracts.sms.v1.SmsActivation.target:type_name -> byte.v.forge.contracts.sms.v1.SmsTarget
-	4,  // 4: byte.v.forge.contracts.sms.v1.SmsActivation.phone_number:type_name -> byte.v.forge.contracts.sms.v1.PhoneNumber
-	0,  // 5: byte.v.forge.contracts.sms.v1.SmsActivation.status:type_name -> byte.v.forge.contracts.sms.v1.SmsActivationStatus
-	3,  // 6: byte.v.forge.contracts.sms.v1.SmsActivation.price:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
-	42, // 7: byte.v.forge.contracts.sms.v1.SmsActivation.acquired_at:type_name -> google.protobuf.Timestamp
-	42, // 8: byte.v.forge.contracts.sms.v1.SmsActivation.expires_at:type_name -> google.protobuf.Timestamp
-	42, // 9: byte.v.forge.contracts.sms.v1.SmsActivation.updated_at:type_name -> google.protobuf.Timestamp
-	2,  // 10: byte.v.forge.contracts.sms.v1.SmsActivation.last_error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	42, // 11: byte.v.forge.contracts.sms.v1.SmsActivation.cancel_allowed_at:type_name -> google.protobuf.Timestamp
-	38, // 12: byte.v.forge.contracts.sms.v1.SmsActivation.labels:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation.LabelsEntry
-	5,  // 13: byte.v.forge.contracts.sms.v1.AcquireNumberRequest.target:type_name -> byte.v.forge.contracts.sms.v1.SmsTarget
-	43, // 14: byte.v.forge.contracts.sms.v1.AcquireNumberRequest.lease_duration:type_name -> google.protobuf.Duration
-	39, // 15: byte.v.forge.contracts.sms.v1.AcquireNumberRequest.labels:type_name -> byte.v.forge.contracts.sms.v1.AcquireNumberRequest.LabelsEntry
-	7,  // 16: byte.v.forge.contracts.sms.v1.AcquireNumberResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	2,  // 17: byte.v.forge.contracts.sms.v1.AcquireNumberResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	7,  // 18: byte.v.forge.contracts.sms.v1.GetActivationResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	6,  // 19: byte.v.forge.contracts.sms.v1.GetActivationResponse.code:type_name -> byte.v.forge.contracts.sms.v1.SmsCode
-	2,  // 20: byte.v.forge.contracts.sms.v1.GetActivationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	43, // 21: byte.v.forge.contracts.sms.v1.WaitForCodeRequest.timeout:type_name -> google.protobuf.Duration
-	43, // 22: byte.v.forge.contracts.sms.v1.WaitForCodeRequest.poll_interval:type_name -> google.protobuf.Duration
-	7,  // 23: byte.v.forge.contracts.sms.v1.WaitForCodeResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	6,  // 24: byte.v.forge.contracts.sms.v1.WaitForCodeResponse.code:type_name -> byte.v.forge.contracts.sms.v1.SmsCode
-	2,  // 25: byte.v.forge.contracts.sms.v1.WaitForCodeResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	7,  // 26: byte.v.forge.contracts.sms.v1.MarkMessageSentResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	2,  // 27: byte.v.forge.contracts.sms.v1.MarkMessageSentResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	7,  // 28: byte.v.forge.contracts.sms.v1.RequestAdditionalCodeResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	2,  // 29: byte.v.forge.contracts.sms.v1.RequestAdditionalCodeResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	7,  // 30: byte.v.forge.contracts.sms.v1.CompleteActivationResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	2,  // 31: byte.v.forge.contracts.sms.v1.CompleteActivationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	7,  // 32: byte.v.forge.contracts.sms.v1.CancelActivationResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	2,  // 33: byte.v.forge.contracts.sms.v1.CancelActivationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	40, // 34: byte.v.forge.contracts.sms.v1.SmsApplicationInfo.localized_names:type_name -> byte.v.forge.contracts.sms.v1.SmsApplicationInfo.LocalizedNamesEntry
-	41, // 35: byte.v.forge.contracts.sms.v1.SmsCountry.localized_names:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry.LocalizedNamesEntry
-	3,  // 36: byte.v.forge.contracts.sms.v1.SmsPriceOffer.price:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
-	23, // 37: byte.v.forge.contracts.sms.v1.SmsCountryPriceSummary.country:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry
-	24, // 38: byte.v.forge.contracts.sms.v1.SmsCountryPriceSummary.offers:type_name -> byte.v.forge.contracts.sms.v1.SmsPriceOffer
-	22, // 39: byte.v.forge.contracts.sms.v1.ListSmsApplicationsResponse.applications:type_name -> byte.v.forge.contracts.sms.v1.SmsApplicationInfo
-	2,  // 40: byte.v.forge.contracts.sms.v1.ListSmsApplicationsResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	23, // 41: byte.v.forge.contracts.sms.v1.ListSmsCountriesResponse.countries:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry
-	2,  // 42: byte.v.forge.contracts.sms.v1.ListSmsCountriesResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	24, // 43: byte.v.forge.contracts.sms.v1.ListSmsPriceOffersResponse.offers:type_name -> byte.v.forge.contracts.sms.v1.SmsPriceOffer
-	2,  // 44: byte.v.forge.contracts.sms.v1.ListSmsPriceOffersResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	25, // 45: byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationResponse.countries:type_name -> byte.v.forge.contracts.sms.v1.SmsCountryPriceSummary
-	2,  // 46: byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	42, // 47: byte.v.forge.contracts.sms.v1.SmsEventContext.occurred_at:type_name -> google.protobuf.Timestamp
-	34, // 48: byte.v.forge.contracts.sms.v1.SmsActivationAcquiredEvent.context:type_name -> byte.v.forge.contracts.sms.v1.SmsEventContext
-	7,  // 49: byte.v.forge.contracts.sms.v1.SmsActivationAcquiredEvent.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
-	34, // 50: byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent.context:type_name -> byte.v.forge.contracts.sms.v1.SmsEventContext
-	6,  // 51: byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent.code:type_name -> byte.v.forge.contracts.sms.v1.SmsCode
-	34, // 52: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.context:type_name -> byte.v.forge.contracts.sms.v1.SmsEventContext
-	0,  // 53: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.previous_status:type_name -> byte.v.forge.contracts.sms.v1.SmsActivationStatus
-	0,  // 54: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.current_status:type_name -> byte.v.forge.contracts.sms.v1.SmsActivationStatus
-	2,  // 55: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
-	8,  // 56: byte.v.forge.contracts.sms.v1.SmsActivationService.AcquireNumber:input_type -> byte.v.forge.contracts.sms.v1.AcquireNumberRequest
-	10, // 57: byte.v.forge.contracts.sms.v1.SmsActivationService.GetActivation:input_type -> byte.v.forge.contracts.sms.v1.GetActivationRequest
-	12, // 58: byte.v.forge.contracts.sms.v1.SmsActivationService.WaitForCode:input_type -> byte.v.forge.contracts.sms.v1.WaitForCodeRequest
-	14, // 59: byte.v.forge.contracts.sms.v1.SmsActivationService.MarkMessageSent:input_type -> byte.v.forge.contracts.sms.v1.MarkMessageSentRequest
-	15, // 60: byte.v.forge.contracts.sms.v1.SmsActivationService.RequestAdditionalCode:input_type -> byte.v.forge.contracts.sms.v1.RequestAdditionalCodeRequest
-	16, // 61: byte.v.forge.contracts.sms.v1.SmsActivationService.CompleteActivation:input_type -> byte.v.forge.contracts.sms.v1.CompleteActivationRequest
-	17, // 62: byte.v.forge.contracts.sms.v1.SmsActivationService.CancelActivation:input_type -> byte.v.forge.contracts.sms.v1.CancelActivationRequest
-	26, // 63: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsApplications:input_type -> byte.v.forge.contracts.sms.v1.ListSmsApplicationsRequest
-	28, // 64: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsCountries:input_type -> byte.v.forge.contracts.sms.v1.ListSmsCountriesRequest
-	30, // 65: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsPriceOffers:input_type -> byte.v.forge.contracts.sms.v1.ListSmsPriceOffersRequest
-	32, // 66: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListTopSmsCountriesByApplication:input_type -> byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationRequest
-	9,  // 67: byte.v.forge.contracts.sms.v1.SmsActivationService.AcquireNumber:output_type -> byte.v.forge.contracts.sms.v1.AcquireNumberResponse
-	11, // 68: byte.v.forge.contracts.sms.v1.SmsActivationService.GetActivation:output_type -> byte.v.forge.contracts.sms.v1.GetActivationResponse
-	13, // 69: byte.v.forge.contracts.sms.v1.SmsActivationService.WaitForCode:output_type -> byte.v.forge.contracts.sms.v1.WaitForCodeResponse
-	18, // 70: byte.v.forge.contracts.sms.v1.SmsActivationService.MarkMessageSent:output_type -> byte.v.forge.contracts.sms.v1.MarkMessageSentResponse
-	19, // 71: byte.v.forge.contracts.sms.v1.SmsActivationService.RequestAdditionalCode:output_type -> byte.v.forge.contracts.sms.v1.RequestAdditionalCodeResponse
-	20, // 72: byte.v.forge.contracts.sms.v1.SmsActivationService.CompleteActivation:output_type -> byte.v.forge.contracts.sms.v1.CompleteActivationResponse
-	21, // 73: byte.v.forge.contracts.sms.v1.SmsActivationService.CancelActivation:output_type -> byte.v.forge.contracts.sms.v1.CancelActivationResponse
-	27, // 74: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsApplications:output_type -> byte.v.forge.contracts.sms.v1.ListSmsApplicationsResponse
-	29, // 75: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsCountries:output_type -> byte.v.forge.contracts.sms.v1.ListSmsCountriesResponse
-	31, // 76: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsPriceOffers:output_type -> byte.v.forge.contracts.sms.v1.ListSmsPriceOffersResponse
-	33, // 77: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListTopSmsCountriesByApplication:output_type -> byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationResponse
-	67, // [67:78] is the sub-list for method output_type
-	56, // [56:67] is the sub-list for method input_type
-	56, // [56:56] is the sub-list for extension type_name
-	56, // [56:56] is the sub-list for extension extendee
-	0,  // [0:56] is the sub-list for field type_name
+	3,  // 2: byte.v.forge.contracts.sms.v1.SmsTarget.min_price:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
+	42, // 3: byte.v.forge.contracts.sms.v1.SmsCode.received_at:type_name -> google.protobuf.Timestamp
+	5,  // 4: byte.v.forge.contracts.sms.v1.SmsActivation.target:type_name -> byte.v.forge.contracts.sms.v1.SmsTarget
+	4,  // 5: byte.v.forge.contracts.sms.v1.SmsActivation.phone_number:type_name -> byte.v.forge.contracts.sms.v1.PhoneNumber
+	0,  // 6: byte.v.forge.contracts.sms.v1.SmsActivation.status:type_name -> byte.v.forge.contracts.sms.v1.SmsActivationStatus
+	3,  // 7: byte.v.forge.contracts.sms.v1.SmsActivation.price:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
+	42, // 8: byte.v.forge.contracts.sms.v1.SmsActivation.acquired_at:type_name -> google.protobuf.Timestamp
+	42, // 9: byte.v.forge.contracts.sms.v1.SmsActivation.expires_at:type_name -> google.protobuf.Timestamp
+	42, // 10: byte.v.forge.contracts.sms.v1.SmsActivation.updated_at:type_name -> google.protobuf.Timestamp
+	2,  // 11: byte.v.forge.contracts.sms.v1.SmsActivation.last_error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	42, // 12: byte.v.forge.contracts.sms.v1.SmsActivation.cancel_allowed_at:type_name -> google.protobuf.Timestamp
+	38, // 13: byte.v.forge.contracts.sms.v1.SmsActivation.labels:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation.LabelsEntry
+	5,  // 14: byte.v.forge.contracts.sms.v1.AcquireNumberRequest.target:type_name -> byte.v.forge.contracts.sms.v1.SmsTarget
+	43, // 15: byte.v.forge.contracts.sms.v1.AcquireNumberRequest.lease_duration:type_name -> google.protobuf.Duration
+	39, // 16: byte.v.forge.contracts.sms.v1.AcquireNumberRequest.labels:type_name -> byte.v.forge.contracts.sms.v1.AcquireNumberRequest.LabelsEntry
+	7,  // 17: byte.v.forge.contracts.sms.v1.AcquireNumberResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	2,  // 18: byte.v.forge.contracts.sms.v1.AcquireNumberResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	7,  // 19: byte.v.forge.contracts.sms.v1.GetActivationResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	6,  // 20: byte.v.forge.contracts.sms.v1.GetActivationResponse.code:type_name -> byte.v.forge.contracts.sms.v1.SmsCode
+	2,  // 21: byte.v.forge.contracts.sms.v1.GetActivationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	43, // 22: byte.v.forge.contracts.sms.v1.WaitForCodeRequest.timeout:type_name -> google.protobuf.Duration
+	43, // 23: byte.v.forge.contracts.sms.v1.WaitForCodeRequest.poll_interval:type_name -> google.protobuf.Duration
+	7,  // 24: byte.v.forge.contracts.sms.v1.WaitForCodeResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	6,  // 25: byte.v.forge.contracts.sms.v1.WaitForCodeResponse.code:type_name -> byte.v.forge.contracts.sms.v1.SmsCode
+	2,  // 26: byte.v.forge.contracts.sms.v1.WaitForCodeResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	7,  // 27: byte.v.forge.contracts.sms.v1.MarkMessageSentResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	2,  // 28: byte.v.forge.contracts.sms.v1.MarkMessageSentResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	7,  // 29: byte.v.forge.contracts.sms.v1.RequestAdditionalCodeResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	2,  // 30: byte.v.forge.contracts.sms.v1.RequestAdditionalCodeResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	7,  // 31: byte.v.forge.contracts.sms.v1.CompleteActivationResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	2,  // 32: byte.v.forge.contracts.sms.v1.CompleteActivationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	7,  // 33: byte.v.forge.contracts.sms.v1.CancelActivationResponse.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	2,  // 34: byte.v.forge.contracts.sms.v1.CancelActivationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	40, // 35: byte.v.forge.contracts.sms.v1.SmsApplicationInfo.localized_names:type_name -> byte.v.forge.contracts.sms.v1.SmsApplicationInfo.LocalizedNamesEntry
+	41, // 36: byte.v.forge.contracts.sms.v1.SmsCountry.localized_names:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry.LocalizedNamesEntry
+	3,  // 37: byte.v.forge.contracts.sms.v1.SmsPriceOffer.price:type_name -> byte.v.forge.contracts.sms.v1.DecimalMoney
+	23, // 38: byte.v.forge.contracts.sms.v1.SmsCountryPriceSummary.country:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry
+	24, // 39: byte.v.forge.contracts.sms.v1.SmsCountryPriceSummary.offers:type_name -> byte.v.forge.contracts.sms.v1.SmsPriceOffer
+	22, // 40: byte.v.forge.contracts.sms.v1.ListSmsApplicationsResponse.applications:type_name -> byte.v.forge.contracts.sms.v1.SmsApplicationInfo
+	2,  // 41: byte.v.forge.contracts.sms.v1.ListSmsApplicationsResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	23, // 42: byte.v.forge.contracts.sms.v1.ListSmsCountriesResponse.countries:type_name -> byte.v.forge.contracts.sms.v1.SmsCountry
+	2,  // 43: byte.v.forge.contracts.sms.v1.ListSmsCountriesResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	24, // 44: byte.v.forge.contracts.sms.v1.ListSmsPriceOffersResponse.offers:type_name -> byte.v.forge.contracts.sms.v1.SmsPriceOffer
+	2,  // 45: byte.v.forge.contracts.sms.v1.ListSmsPriceOffersResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	25, // 46: byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationResponse.countries:type_name -> byte.v.forge.contracts.sms.v1.SmsCountryPriceSummary
+	2,  // 47: byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationResponse.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	42, // 48: byte.v.forge.contracts.sms.v1.SmsEventContext.occurred_at:type_name -> google.protobuf.Timestamp
+	34, // 49: byte.v.forge.contracts.sms.v1.SmsActivationAcquiredEvent.context:type_name -> byte.v.forge.contracts.sms.v1.SmsEventContext
+	7,  // 50: byte.v.forge.contracts.sms.v1.SmsActivationAcquiredEvent.activation:type_name -> byte.v.forge.contracts.sms.v1.SmsActivation
+	34, // 51: byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent.context:type_name -> byte.v.forge.contracts.sms.v1.SmsEventContext
+	6,  // 52: byte.v.forge.contracts.sms.v1.SmsCodeReceivedEvent.code:type_name -> byte.v.forge.contracts.sms.v1.SmsCode
+	34, // 53: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.context:type_name -> byte.v.forge.contracts.sms.v1.SmsEventContext
+	0,  // 54: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.previous_status:type_name -> byte.v.forge.contracts.sms.v1.SmsActivationStatus
+	0,  // 55: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.current_status:type_name -> byte.v.forge.contracts.sms.v1.SmsActivationStatus
+	2,  // 56: byte.v.forge.contracts.sms.v1.SmsActivationStatusChangedEvent.error:type_name -> byte.v.forge.contracts.sms.v1.SmsError
+	8,  // 57: byte.v.forge.contracts.sms.v1.SmsActivationService.AcquireNumber:input_type -> byte.v.forge.contracts.sms.v1.AcquireNumberRequest
+	10, // 58: byte.v.forge.contracts.sms.v1.SmsActivationService.GetActivation:input_type -> byte.v.forge.contracts.sms.v1.GetActivationRequest
+	12, // 59: byte.v.forge.contracts.sms.v1.SmsActivationService.WaitForCode:input_type -> byte.v.forge.contracts.sms.v1.WaitForCodeRequest
+	14, // 60: byte.v.forge.contracts.sms.v1.SmsActivationService.MarkMessageSent:input_type -> byte.v.forge.contracts.sms.v1.MarkMessageSentRequest
+	15, // 61: byte.v.forge.contracts.sms.v1.SmsActivationService.RequestAdditionalCode:input_type -> byte.v.forge.contracts.sms.v1.RequestAdditionalCodeRequest
+	16, // 62: byte.v.forge.contracts.sms.v1.SmsActivationService.CompleteActivation:input_type -> byte.v.forge.contracts.sms.v1.CompleteActivationRequest
+	17, // 63: byte.v.forge.contracts.sms.v1.SmsActivationService.CancelActivation:input_type -> byte.v.forge.contracts.sms.v1.CancelActivationRequest
+	26, // 64: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsApplications:input_type -> byte.v.forge.contracts.sms.v1.ListSmsApplicationsRequest
+	28, // 65: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsCountries:input_type -> byte.v.forge.contracts.sms.v1.ListSmsCountriesRequest
+	30, // 66: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsPriceOffers:input_type -> byte.v.forge.contracts.sms.v1.ListSmsPriceOffersRequest
+	32, // 67: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListTopSmsCountriesByApplication:input_type -> byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationRequest
+	9,  // 68: byte.v.forge.contracts.sms.v1.SmsActivationService.AcquireNumber:output_type -> byte.v.forge.contracts.sms.v1.AcquireNumberResponse
+	11, // 69: byte.v.forge.contracts.sms.v1.SmsActivationService.GetActivation:output_type -> byte.v.forge.contracts.sms.v1.GetActivationResponse
+	13, // 70: byte.v.forge.contracts.sms.v1.SmsActivationService.WaitForCode:output_type -> byte.v.forge.contracts.sms.v1.WaitForCodeResponse
+	18, // 71: byte.v.forge.contracts.sms.v1.SmsActivationService.MarkMessageSent:output_type -> byte.v.forge.contracts.sms.v1.MarkMessageSentResponse
+	19, // 72: byte.v.forge.contracts.sms.v1.SmsActivationService.RequestAdditionalCode:output_type -> byte.v.forge.contracts.sms.v1.RequestAdditionalCodeResponse
+	20, // 73: byte.v.forge.contracts.sms.v1.SmsActivationService.CompleteActivation:output_type -> byte.v.forge.contracts.sms.v1.CompleteActivationResponse
+	21, // 74: byte.v.forge.contracts.sms.v1.SmsActivationService.CancelActivation:output_type -> byte.v.forge.contracts.sms.v1.CancelActivationResponse
+	27, // 75: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsApplications:output_type -> byte.v.forge.contracts.sms.v1.ListSmsApplicationsResponse
+	29, // 76: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsCountries:output_type -> byte.v.forge.contracts.sms.v1.ListSmsCountriesResponse
+	31, // 77: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListSmsPriceOffers:output_type -> byte.v.forge.contracts.sms.v1.ListSmsPriceOffersResponse
+	33, // 78: byte.v.forge.contracts.sms.v1.SmsCatalogService.ListTopSmsCountriesByApplication:output_type -> byte.v.forge.contracts.sms.v1.ListTopSmsCountriesByApplicationResponse
+	68, // [68:79] is the sub-list for method output_type
+	57, // [57:68] is the sub-list for method input_type
+	57, // [57:57] is the sub-list for extension type_name
+	57, // [57:57] is the sub-list for extension extendee
+	0,  // [0:57] is the sub-list for field type_name
 }
 
 func init() { file_byte_v_forge_contracts_sms_v1_sms_proto_init() }

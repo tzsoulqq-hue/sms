@@ -8,7 +8,7 @@ type BaseRouteField = {
 export type RouteField =
   | (BaseRouteField & { key: 'upstream_service_key' | 'provider_country_id'; scope: 'route' })
   | (BaseRouteField & { key: string; scope: 'option' })
-  | (BaseRouteField & { key: 'amount_decimal'; scope: 'maxPrice'; options?: undefined });
+  | (BaseRouteField & { key: 'amount_decimal'; scope: 'minPrice' | 'maxPrice'; options?: undefined });
 
 export type RouteAdapter = {
   providerKey: string;

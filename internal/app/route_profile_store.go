@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS sms_route_profiles (
   default_application_key text NOT NULL DEFAULT '',
   default_country_iso2 text NOT NULL DEFAULT '',
   default_country_calling_code text NOT NULL DEFAULT '',
+  default_min_price_currency text NOT NULL DEFAULT '',
+  default_min_price_amount text NOT NULL DEFAULT '',
   default_max_price_currency text NOT NULL DEFAULT '',
   default_max_price_amount text NOT NULL DEFAULT '',
   routes jsonb NOT NULL DEFAULT '[]',
@@ -36,6 +38,8 @@ CREATE TABLE IF NOT EXISTS sms_route_profiles (
 );
 CREATE INDEX IF NOT EXISTS idx_sms_route_profiles_enabled
   ON sms_route_profiles(enabled, updated_at DESC);
+ALTER TABLE sms_route_profiles ADD COLUMN IF NOT EXISTS default_min_price_currency text NOT NULL DEFAULT '';
+ALTER TABLE sms_route_profiles ADD COLUMN IF NOT EXISTS default_min_price_amount text NOT NULL DEFAULT '';
 `)
 	return err
 }
@@ -54,13 +58,15 @@ func (s *PostgresProviderConfigStore) UpsertRouteProfile(ctx context.Context, in
 		return nil, err
 	}
 	target := profile.GetDefaultTarget()
+	minPrice := target.GetMinPrice()
 	maxPrice := target.GetMaxPrice()
 	row := s.pool.QueryRow(ctx, `
 INSERT INTO sms_route_profiles (
   profile_key, display_name, enabled, selection_strategy, preferred_provider_key,
   default_application_key, default_country_iso2, default_country_calling_code,
+  default_min_price_currency, default_min_price_amount,
   default_max_price_currency, default_max_price_amount, routes, labels
-) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 ON CONFLICT (profile_key) DO UPDATE SET
   display_name = EXCLUDED.display_name,
   enabled = EXCLUDED.enabled,
@@ -69,6 +75,8 @@ ON CONFLICT (profile_key) DO UPDATE SET
   default_application_key = EXCLUDED.default_application_key,
   default_country_iso2 = EXCLUDED.default_country_iso2,
   default_country_calling_code = EXCLUDED.default_country_calling_code,
+  default_min_price_currency = EXCLUDED.default_min_price_currency,
+  default_min_price_amount = EXCLUDED.default_min_price_amount,
   default_max_price_currency = EXCLUDED.default_max_price_currency,
   default_max_price_amount = EXCLUDED.default_max_price_amount,
   routes = EXCLUDED.routes,
@@ -77,6 +85,7 @@ ON CONFLICT (profile_key) DO UPDATE SET
 `+selectRouteProfileSQL(),
 		profile.GetProfileKey(), profile.GetDisplayName(), profile.GetEnabled(), int32(profile.GetSelectionStrategy()), profile.GetPreferredProviderKey(),
 		target.GetApplicationKey(), target.GetCountryIso2(), target.GetCountryCallingCode(),
+		minPrice.GetCurrencyCode(), minPrice.GetAmountDecimal(),
 		maxPrice.GetCurrencyCode(), maxPrice.GetAmountDecimal(), routes, labels,
 	)
 	return scanRouteProfile(row)
@@ -189,6 +198,7 @@ func scanRouteProfile(row pgx.Row) (*smsinternalv1.SmsRouteProfile, error) {
 	if err := row.Scan(
 		&profile.profileKey, &profile.displayName, &profile.enabled, &profile.selectionStrategy, &profile.preferredProviderKey,
 		&profile.defaultApplicationKey, &profile.defaultCountryISO2, &profile.defaultCountryCalling,
+		&profile.defaultMinPriceCurrency, &profile.defaultMinPriceAmount,
 		&profile.defaultMaxPriceCurrency, &profile.defaultMaxPriceAmount, &profile.routes, &profile.labels,
 		&profile.createdAt, &profile.updatedAt,
 	); err != nil {
@@ -209,6 +219,8 @@ type routeProfileRecord struct {
 	defaultApplicationKey   string
 	defaultCountryISO2      string
 	defaultCountryCalling   string
+	defaultMinPriceCurrency string
+	defaultMinPriceAmount   string
 	defaultMaxPriceCurrency string
 	defaultMaxPriceAmount   string
 	routes                  []byte
@@ -232,6 +244,10 @@ func (r routeProfileRecord) toProto() *smsinternalv1.SmsRouteProfile {
 			ApplicationKey:     r.defaultApplicationKey,
 			CountryIso2:        r.defaultCountryISO2,
 			CountryCallingCode: r.defaultCountryCalling,
+			MinPrice: &smsv1.DecimalMoney{
+				CurrencyCode:  r.defaultMinPriceCurrency,
+				AmountDecimal: r.defaultMinPriceAmount,
+			},
 			MaxPrice: &smsv1.DecimalMoney{
 				CurrencyCode:  r.defaultMaxPriceCurrency,
 				AmountDecimal: r.defaultMaxPriceAmount,
@@ -247,6 +263,7 @@ func (r routeProfileRecord) toProto() *smsinternalv1.SmsRouteProfile {
 func routeProfileColumns() string {
 	return `profile_key, display_name, enabled, selection_strategy, preferred_provider_key,
 default_application_key, default_country_iso2, default_country_calling_code,
+default_min_price_currency, default_min_price_amount,
 default_max_price_currency, default_max_price_amount, routes, labels,
 created_at, updated_at`
 }

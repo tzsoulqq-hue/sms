@@ -69,6 +69,8 @@ CREATE TABLE IF NOT EXISTS sms_provider_configs (
   default_application_key text NOT NULL DEFAULT '',
   default_country_iso2 text NOT NULL DEFAULT '',
   default_country_calling_code text NOT NULL DEFAULT '',
+  default_min_price_currency text NOT NULL DEFAULT '',
+  default_min_price_amount text NOT NULL DEFAULT '',
   default_max_price_currency text NOT NULL DEFAULT '',
   default_max_price_amount text NOT NULL DEFAULT '',
   policy_activation_ttl_seconds bigint NOT NULL DEFAULT 0,
@@ -88,6 +90,8 @@ ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_poll_interval_s
 ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_cancel_allowed_after_seconds bigint NOT NULL DEFAULT 0;
 ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_early_cancel_retry_after_seconds bigint NOT NULL DEFAULT 0;
 ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS policy_cancel_allowed_until_seconds bigint NOT NULL DEFAULT 0;
+ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS default_min_price_currency text NOT NULL DEFAULT '';
+ALTER TABLE sms_provider_configs ADD COLUMN IF NOT EXISTS default_min_price_amount text NOT NULL DEFAULT '';
 `)
 	return err
 }
@@ -106,6 +110,7 @@ func (s *PostgresProviderConfigStore) UpsertProviderConfig(ctx context.Context, 
 		return nil, err
 	}
 	target := config.GetDefaultTarget()
+	minPrice := target.GetMinPrice()
 	maxPrice := target.GetMaxPrice()
 	policy := providerPolicyFromConfig(config, defaultProviderPolicy(config.GetProviderKey())).WithDefaults()
 	row := s.pool.QueryRow(ctx, `
@@ -114,11 +119,12 @@ INSERT INTO sms_provider_configs (
   credential_secret, credential_secret_ref, proxy_ref, http_proxy,
   upstream_service_key, provider_country_id,
   default_application_key, default_country_iso2, default_country_calling_code,
+  default_min_price_currency, default_min_price_amount,
   default_max_price_currency, default_max_price_amount,
   policy_activation_ttl_seconds, policy_poll_interval_seconds,
   policy_cancel_allowed_after_seconds, policy_early_cancel_retry_after_seconds,
   policy_cancel_allowed_until_seconds, capabilities, labels
-) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)
+) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
 ON CONFLICT (provider_config_id) DO UPDATE SET
   provider_key = EXCLUDED.provider_key,
   display_name = EXCLUDED.display_name,
@@ -133,6 +139,8 @@ ON CONFLICT (provider_config_id) DO UPDATE SET
   default_application_key = EXCLUDED.default_application_key,
   default_country_iso2 = EXCLUDED.default_country_iso2,
   default_country_calling_code = EXCLUDED.default_country_calling_code,
+  default_min_price_currency = EXCLUDED.default_min_price_currency,
+  default_min_price_amount = EXCLUDED.default_min_price_amount,
   default_max_price_currency = EXCLUDED.default_max_price_currency,
   default_max_price_amount = EXCLUDED.default_max_price_amount,
   policy_activation_ttl_seconds = EXCLUDED.policy_activation_ttl_seconds,
@@ -148,6 +156,7 @@ ON CONFLICT (provider_config_id) DO UPDATE SET
 		config.GetCredentialSecret(), config.GetCredentialSecretRef(), config.GetProxyRef(), config.GetHttpProxy(),
 		config.GetUpstreamServiceKey(), config.GetProviderCountryId(),
 		target.GetApplicationKey(), target.GetCountryIso2(), target.GetCountryCallingCode(),
+		minPrice.GetCurrencyCode(), minPrice.GetAmountDecimal(),
 		maxPrice.GetCurrencyCode(), maxPrice.GetAmountDecimal(),
 		durationSeconds(policy.ActivationTTL), durationSeconds(policy.PollInterval),
 		durationSeconds(policy.CancelAllowedAfter), durationSeconds(policy.EarlyCancelRetryAfter),
@@ -276,6 +285,7 @@ func scanProviderConfig(row pgx.Row) (*smsinternalv1.SmsProviderConfig, error) {
 		&config.credentialSecret, &config.credentialSecretRef, &config.proxyRef, &config.httpProxy,
 		&config.upstreamServiceKey, &config.providerCountryID,
 		&config.defaultApplicationKey, &config.defaultCountryISO2, &config.defaultCountryCallingCode,
+		&config.defaultMinPriceCurrency, &config.defaultMinPriceAmount,
 		&config.defaultMaxPriceCurrency, &config.defaultMaxPriceAmount,
 		&config.policyActivationTTLSeconds, &config.policyPollIntervalSeconds,
 		&config.policyCancelAllowedAfterSeconds, &config.policyEarlyCancelRetryAfterSeconds,
@@ -305,6 +315,8 @@ type providerConfigRecord struct {
 	defaultApplicationKey              string
 	defaultCountryISO2                 string
 	defaultCountryCallingCode          string
+	defaultMinPriceCurrency            string
+	defaultMinPriceAmount              string
 	defaultMaxPriceCurrency            string
 	defaultMaxPriceAmount              string
 	policyActivationTTLSeconds         int64
@@ -339,6 +351,10 @@ func (r providerConfigRecord) toProto() *smsinternalv1.SmsProviderConfig {
 			ApplicationKey:     r.defaultApplicationKey,
 			CountryIso2:        r.defaultCountryISO2,
 			CountryCallingCode: r.defaultCountryCallingCode,
+			MinPrice: &smsv1.DecimalMoney{
+				CurrencyCode:  r.defaultMinPriceCurrency,
+				AmountDecimal: r.defaultMinPriceAmount,
+			},
 			MaxPrice: &smsv1.DecimalMoney{
 				CurrencyCode:  r.defaultMaxPriceCurrency,
 				AmountDecimal: r.defaultMaxPriceAmount,
@@ -378,6 +394,7 @@ func providerConfigColumns() string {
 credential_secret, credential_secret_ref, proxy_ref, http_proxy,
 upstream_service_key, provider_country_id,
 default_application_key, default_country_iso2, default_country_calling_code,
+default_min_price_currency, default_min_price_amount,
 default_max_price_currency, default_max_price_amount,
 policy_activation_ttl_seconds, policy_poll_interval_seconds,
 policy_cancel_allowed_after_seconds, policy_early_cancel_retry_after_seconds,
@@ -403,6 +420,10 @@ func normalizeTarget(target *smsv1.SmsTarget) {
 	if target.GetMaxPrice() != nil {
 		target.MaxPrice.CurrencyCode = strings.ToUpper(strings.TrimSpace(target.GetMaxPrice().GetCurrencyCode()))
 		target.MaxPrice.AmountDecimal = strings.TrimSpace(target.GetMaxPrice().GetAmountDecimal())
+	}
+	if target.GetMinPrice() != nil {
+		target.MinPrice.CurrencyCode = strings.ToUpper(strings.TrimSpace(target.GetMinPrice().GetCurrencyCode()))
+		target.MinPrice.AmountDecimal = strings.TrimSpace(target.GetMinPrice().GetAmountDecimal())
 	}
 }
 

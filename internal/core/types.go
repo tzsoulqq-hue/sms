@@ -21,6 +21,7 @@ type Target struct {
 	ApplicationKey     string
 	CountryISO2        string
 	CountryCallingCode string
+	MinPrice           Money
 	MaxPrice           Money
 }
 

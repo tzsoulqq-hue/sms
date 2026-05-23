@@ -18,6 +18,7 @@ func toProtoActivation(activation core.Activation) *smsv1.SmsActivation {
 			ApplicationKey:     activation.Target.ApplicationKey,
 			CountryIso2:        activation.Target.CountryISO2,
 			CountryCallingCode: activation.Target.CountryCallingCode,
+			MinPrice:           toProtoMoney(activation.Target.MinPrice),
 			MaxPrice:           toProtoMoney(activation.Target.MaxPrice),
 		},
 		PhoneNumber: &smsv1.PhoneNumber{
@@ -56,19 +57,20 @@ func fromProtoTarget(target *smsv1.SmsTarget) core.Target {
 	if target == nil {
 		return core.Target{}
 	}
-	var maxPrice core.Money
-	if target.GetMaxPrice() != nil {
-		maxPrice = core.Money{
-			CurrencyCode:  target.GetMaxPrice().GetCurrencyCode(),
-			AmountDecimal: target.GetMaxPrice().GetAmountDecimal(),
-		}
-	}
 	return core.Target{
 		ApplicationKey:     target.GetApplicationKey(),
 		CountryISO2:        target.GetCountryIso2(),
 		CountryCallingCode: target.GetCountryCallingCode(),
-		MaxPrice:           maxPrice,
+		MinPrice:           fromProtoMoney(target.GetMinPrice()),
+		MaxPrice:           fromProtoMoney(target.GetMaxPrice()),
 	}
+}
+
+func fromProtoMoney(value *smsv1.DecimalMoney) core.Money {
+	if value == nil {
+		return core.Money{}
+	}
+	return core.Money{CurrencyCode: value.GetCurrencyCode(), AmountDecimal: value.GetAmountDecimal()}
 }
 
 func toProtoError(err error) *smsv1.SmsError {

@@ -51,6 +51,8 @@ CREATE TABLE IF NOT EXISTS sms_activations (
   target_application_key text NOT NULL DEFAULT '',
   target_country_iso2 text NOT NULL DEFAULT '',
   target_country_calling_code text NOT NULL DEFAULT '',
+  target_min_price_currency text NOT NULL DEFAULT '',
+  target_min_price_amount text NOT NULL DEFAULT '',
   target_max_price_currency text NOT NULL DEFAULT '',
   target_max_price_amount text NOT NULL DEFAULT '',
   phone_e164 text NOT NULL DEFAULT '',
@@ -74,6 +76,8 @@ CREATE TABLE IF NOT EXISTS sms_activations (
   last_error_retryable boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE sms_activations ADD COLUMN IF NOT EXISTS target_min_price_currency text NOT NULL DEFAULT '';
+ALTER TABLE sms_activations ADD COLUMN IF NOT EXISTS target_min_price_amount text NOT NULL DEFAULT '';
 CREATE INDEX IF NOT EXISTS idx_sms_activations_status_updated
   ON sms_activations(status, updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_sms_activations_provider_upstream
@@ -90,7 +94,8 @@ func (s *PostgresActivationStore) Save(ctx context.Context, activation core.Acti
 	_, err = s.pool.Exec(ctx, `
 INSERT INTO sms_activations (
   activation_id, request_id, provider_config_id, provider_key, upstream_activation_id, upstream_operator,
-  target_application_key, target_country_iso2, target_country_calling_code, target_max_price_currency, target_max_price_amount,
+  target_application_key, target_country_iso2, target_country_calling_code,
+  target_min_price_currency, target_min_price_amount, target_max_price_currency, target_max_price_amount,
   phone_e164, phone_national, phone_country_iso2, phone_country_calling_code,
   status, price_currency, price_amount, acquired_at, expires_at, updated_at, cancel_allowed_at,
   code_value, code_message_text, code_received_at, can_request_additional_code, labels,
@@ -98,7 +103,8 @@ INSERT INTO sms_activations (
 ) VALUES (
   $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
   $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
-  $21,$22,$23,$24,$25,$26,$27,$28,$29,$30
+  $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
+  $31,$32
 )
 ON CONFLICT (activation_id) DO UPDATE SET
   request_id = EXCLUDED.request_id,
@@ -109,6 +115,8 @@ ON CONFLICT (activation_id) DO UPDATE SET
   target_application_key = EXCLUDED.target_application_key,
   target_country_iso2 = EXCLUDED.target_country_iso2,
   target_country_calling_code = EXCLUDED.target_country_calling_code,
+  target_min_price_currency = EXCLUDED.target_min_price_currency,
+  target_min_price_amount = EXCLUDED.target_min_price_amount,
   target_max_price_currency = EXCLUDED.target_max_price_currency,
   target_max_price_amount = EXCLUDED.target_max_price_amount,
   phone_e164 = EXCLUDED.phone_e164,
@@ -154,27 +162,29 @@ UPDATE sms_activations SET
   target_application_key = $7,
   target_country_iso2 = $8,
   target_country_calling_code = $9,
-  target_max_price_currency = $10,
-  target_max_price_amount = $11,
-  phone_e164 = $12,
-  phone_national = $13,
-  phone_country_iso2 = $14,
-  phone_country_calling_code = $15,
-  status = $16,
-  price_currency = $17,
-  price_amount = $18,
-  acquired_at = $19,
-  expires_at = $20,
-  updated_at = $21,
-  cancel_allowed_at = $22,
-  code_value = $23,
-  code_message_text = $24,
-  code_received_at = $25,
-  can_request_additional_code = $26,
-  labels = $27,
-  last_error_code = $28,
-  last_error_message = $29,
-  last_error_retryable = $30
+  target_min_price_currency = $10,
+  target_min_price_amount = $11,
+  target_max_price_currency = $12,
+  target_max_price_amount = $13,
+  phone_e164 = $14,
+  phone_national = $15,
+  phone_country_iso2 = $16,
+  phone_country_calling_code = $17,
+  status = $18,
+  price_currency = $19,
+  price_amount = $20,
+  acquired_at = $21,
+  expires_at = $22,
+  updated_at = $23,
+  cancel_allowed_at = $24,
+  code_value = $25,
+  code_message_text = $26,
+  code_received_at = $27,
+  can_request_additional_code = $28,
+  labels = $29,
+  last_error_code = $30,
+  last_error_message = $31,
+  last_error_retryable = $32
 WHERE activation_id = $1
 `, activationValues(activation, labels)...)
 	if err != nil {
@@ -253,6 +263,8 @@ func activationValues(activation core.Activation, labels []byte) []any {
 		activation.Target.ApplicationKey,
 		activation.Target.CountryISO2,
 		activation.Target.CountryCallingCode,
+		activation.Target.MinPrice.CurrencyCode,
+		activation.Target.MinPrice.AmountDecimal,
 		activation.Target.MaxPrice.CurrencyCode,
 		activation.Target.MaxPrice.AmountDecimal,
 		activation.PhoneNumber.E164,
@@ -279,7 +291,8 @@ func activationValues(activation core.Activation, labels []byte) []any {
 
 func activationColumns() string {
 	return `activation_id, request_id, provider_config_id, provider_key, upstream_activation_id, upstream_operator,
-target_application_key, target_country_iso2, target_country_calling_code, target_max_price_currency, target_max_price_amount,
+target_application_key, target_country_iso2, target_country_calling_code,
+target_min_price_currency, target_min_price_amount, target_max_price_currency, target_max_price_amount,
 phone_e164, phone_national, phone_country_iso2, phone_country_calling_code,
 status, price_currency, price_amount, acquired_at, expires_at, updated_at, cancel_allowed_at,
 code_value, code_message_text, code_received_at, can_request_additional_code, labels,
@@ -290,7 +303,8 @@ func scanActivation(row pgx.Row) (core.Activation, error) {
 	var record activationRecord
 	if err := row.Scan(
 		&record.id, &record.requestID, &record.providerConfigID, &record.providerKey, &record.upstreamActivationID, &record.upstreamOperator,
-		&record.targetApplicationKey, &record.targetCountryISO2, &record.targetCallingCode, &record.targetMaxPriceCurrency, &record.targetMaxPriceAmount,
+		&record.targetApplicationKey, &record.targetCountryISO2, &record.targetCallingCode,
+		&record.targetMinPriceCurrency, &record.targetMinPriceAmount, &record.targetMaxPriceCurrency, &record.targetMaxPriceAmount,
 		&record.phoneE164, &record.phoneNational, &record.phoneCountryISO2, &record.phoneCallingCode,
 		&record.status, &record.priceCurrency, &record.priceAmount, &record.acquiredAt, &record.expiresAt, &record.updatedAt, &record.cancelAllowedAt,
 		&record.codeValue, &record.codeMessageText, &record.codeReceivedAt, &record.canRequestAdditionalCode, &record.labels,
@@ -314,6 +328,8 @@ type activationRecord struct {
 	targetApplicationKey     string
 	targetCountryISO2        string
 	targetCallingCode        string
+	targetMinPriceCurrency   string
+	targetMinPriceAmount     string
 	targetMaxPriceCurrency   string
 	targetMaxPriceAmount     string
 	phoneE164                string
@@ -351,6 +367,10 @@ func (r activationRecord) toCore() core.Activation {
 			ApplicationKey:     r.targetApplicationKey,
 			CountryISO2:        r.targetCountryISO2,
 			CountryCallingCode: r.targetCallingCode,
+			MinPrice: core.Money{
+				CurrencyCode:  r.targetMinPriceCurrency,
+				AmountDecimal: r.targetMinPriceAmount,
+			},
 			MaxPrice: core.Money{
 				CurrencyCode:  r.targetMaxPriceCurrency,
 				AmountDecimal: r.targetMaxPriceAmount,

@@ -83,7 +83,7 @@ function RouteEditor({ route, onChange, onRemove }: { route: SmsRouteCandidate; 
 }
 
 function patchTarget(route: SmsRouteCandidate, onChange: (route: SmsRouteCandidate) => void, target: Record<string, string>) {
-  onChange({ ...route, target: { application_key: '', country_iso2: '', country_calling_code: '', max_price: undefined, ...(route.target || {}), ...target } });
+  onChange({ ...route, target: { application_key: '', country_iso2: '', country_calling_code: '', min_price: undefined, max_price: undefined, ...(route.target || {}), ...target } });
 }
 
 function ProviderSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {

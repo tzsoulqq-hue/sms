@@ -5,6 +5,7 @@ export const smsbowerRouteAdapter: RouteAdapter = {
   fields: [
     { key: 'upstream_service_key', label: 'Service', scope: 'route', options: 'services' },
     { key: 'provider_country_id', label: 'Country', scope: 'route', options: 'countries' },
+    { key: 'amount_decimal', label: 'Min Price', scope: 'minPrice' },
     { key: 'amount_decimal', label: 'Max Price', scope: 'maxPrice' },
     { key: 'ref', label: 'Ref', scope: 'option' },
     { key: 'include_provider_ids', label: 'Include Providers', scope: 'option' },

@@ -37,8 +37,10 @@ function FieldInput({ field, route, options, onChange }: Props & { field: RouteF
 
 function readField(route: SmsRouteCandidate, field: RouteField) {
   if (field.scope === 'option') return route.provider_options?.[field.key] || '';
+  if (field.scope === 'minPrice') return route.min_price?.amount_decimal || '';
   if (field.scope === 'maxPrice') return route.max_price?.amount_decimal || '';
-  return route[field.key] || '';
+  if (field.scope === 'route') return route[field.key] || '';
+  return '';
 }
 
 function writeChoice(route: SmsRouteCandidate, field: RouteField, choice?: SmsRouteOption): SmsRouteCandidate {
@@ -49,11 +51,12 @@ function writeChoice(route: SmsRouteCandidate, field: RouteField, choice?: SmsRo
       application_key: next.target?.application_key || '',
       country_iso2: choice.metadata?.country_iso2 || next.target?.country_iso2 || '',
       country_calling_code: choice.metadata?.country_calling_code || next.target?.country_calling_code || '',
+      min_price: next.target?.min_price,
       max_price: next.target?.max_price
     };
   }
   if (field.options === 'services' && choice.metadata?.application_key) {
-    next.target = { application_key: choice.metadata.application_key, country_iso2: next.target?.country_iso2 || '', country_calling_code: next.target?.country_calling_code || '', max_price: next.target?.max_price };
+    next.target = { application_key: choice.metadata.application_key, country_iso2: next.target?.country_iso2 || '', country_calling_code: next.target?.country_calling_code || '', min_price: next.target?.min_price, max_price: next.target?.max_price };
   }
   return next;
 }
@@ -62,9 +65,12 @@ function writeField(route: SmsRouteCandidate, field: RouteField, value: string):
   if (field.scope === 'option') {
     return { ...route, provider_options: { ...(route.provider_options || {}), [field.key]: value } };
   }
+  if (field.scope === 'minPrice') {
+    return { ...route, min_price: { currency_code: route.min_price?.currency_code || 'USD', amount_decimal: value } };
+  }
   if (field.scope === 'maxPrice') {
     return { ...route, max_price: { currency_code: route.max_price?.currency_code || 'USD', amount_decimal: value } };
   }
-  if (field.key === 'upstream_service_key') return { ...route, upstream_service_key: value };
+  if (field.scope === 'route' && field.key === 'upstream_service_key') return { ...route, upstream_service_key: value };
   return { ...route, provider_country_id: value };
 }

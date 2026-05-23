@@ -92,6 +92,7 @@ message SmsTarget {
   // Numeric country calling code without "+".
   string country_calling_code = 3;
   DecimalMoney max_price = 4;
+  DecimalMoney min_price = 5;
 }
 
 message SmsCode {

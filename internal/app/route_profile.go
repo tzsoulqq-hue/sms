@@ -96,7 +96,12 @@ func (rank routeRank) betterThan(other routeRank) bool {
 }
 
 func routePrice(candidate *smsinternalv1.SmsRouteCandidate, target core.Target) float64 {
-	for _, money := range []core.Money{moneyFromProto(candidate.GetMaxPrice()), target.MaxPrice} {
+	for _, money := range []core.Money{
+		moneyFromProto(candidate.GetMaxPrice()),
+		target.MaxPrice,
+		moneyFromProto(candidate.GetMinPrice()),
+		target.MinPrice,
+	} {
 		if price, err := strconv.ParseFloat(strings.TrimSpace(money.AmountDecimal), 64); err == nil {
 			return price
 		}
