@@ -149,6 +149,7 @@ message WaitForCodeRequest {
   string activation_id = 1;
   google.protobuf.Duration timeout = 2;
   google.protobuf.Duration poll_interval = 3;
+  int64 issued_after_unix = 4;
 }
 
 message WaitForCodeResponse {

@@ -47,6 +47,7 @@ func (s *ActivationServer) WaitForCode(ctx context.Context, request *smsv1.WaitF
 		request.GetActivationId(),
 		protoDuration(request.GetTimeout()),
 		protoDuration(request.GetPollInterval()),
+		request.GetIssuedAfterUnix(),
 	)
 	if err != nil {
 		return &smsv1.WaitForCodeResponse{Activation: toProtoActivation(activation), Error: toProtoError(err)}, nil

@@ -181,10 +181,10 @@ func (s *ActivationService) CheckCode(ctx context.Context, activationID string) 
 	if err := s.store.Update(ctx, activation); err != nil {
 		return core.Activation{}, nil, err
 	}
-	return activation, activation.Code, nil
+	return activation, nil, nil
 }
 
-func (s *ActivationService) WaitForCode(ctx context.Context, activationID string, timeout, pollInterval time.Duration) (core.Activation, *core.SMSCode, error) {
+func (s *ActivationService) WaitForCode(ctx context.Context, activationID string, timeout, pollInterval time.Duration, issuedAfterUnix int64) (core.Activation, *core.SMSCode, error) {
 	activation, err := s.store.Get(ctx, activationID)
 	if err != nil {
 		return core.Activation{}, nil, err
@@ -201,6 +201,10 @@ func (s *ActivationService) WaitForCode(ctx context.Context, activationID string
 	if pollInterval <= 0 {
 		pollInterval = policy.PollInterval
 	}
+	var issuedAfter time.Time
+	if issuedAfterUnix > 0 {
+		issuedAfter = time.Unix(issuedAfterUnix, 0)
+	}
 	deadline := s.clock.Now().Add(timeout)
 	for {
 		current, code, err := s.CheckCode(ctx, activationID)
@@ -208,7 +212,9 @@ func (s *ActivationService) WaitForCode(ctx context.Context, activationID string
 			return current, nil, err
 		}
 		if code != nil && code.Value != "" {
-			return current, code, nil
+			if issuedAfter.IsZero() || !code.ReceivedAt.Before(issuedAfter) {
+				return current, code, nil
+			}
 		}
 		if !s.clock.Now().Before(deadline) {
 			return current, nil, core.NewError(core.CodeTimeout, "sms code wait timed out", true)
@@ -311,6 +317,9 @@ func (s *ActivationService) applyAction(ctx context.Context, activationID, _ str
 	}
 	activation.Status = next
 	activation.UpdatedAt = s.clock.Now()
+	if action == core.ActionMarkMessageSent || action == core.ActionRequestAdditional {
+		activation.Code = nil
+	}
 	if err := s.store.Update(ctx, activation); err != nil {
 		return core.Activation{}, err
 	}

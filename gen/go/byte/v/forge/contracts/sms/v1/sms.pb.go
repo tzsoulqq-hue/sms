@@ -888,12 +888,13 @@ func (x *GetActivationResponse) GetError() *SmsError {
 }
 
 type WaitForCodeRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	ActivationId  string                 `protobuf:"bytes,1,opt,name=activation_id,json=activationId,proto3" json:"activation_id,omitempty"`
-	Timeout       *durationpb.Duration   `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
-	PollInterval  *durationpb.Duration   `protobuf:"bytes,3,opt,name=poll_interval,json=pollInterval,proto3" json:"poll_interval,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	ActivationId    string                 `protobuf:"bytes,1,opt,name=activation_id,json=activationId,proto3" json:"activation_id,omitempty"`
+	Timeout         *durationpb.Duration   `protobuf:"bytes,2,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	PollInterval    *durationpb.Duration   `protobuf:"bytes,3,opt,name=poll_interval,json=pollInterval,proto3" json:"poll_interval,omitempty"`
+	IssuedAfterUnix int64                  `protobuf:"varint,4,opt,name=issued_after_unix,json=issuedAfterUnix,proto3" json:"issued_after_unix,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *WaitForCodeRequest) Reset() {
@@ -945,6 +946,13 @@ func (x *WaitForCodeRequest) GetPollInterval() *durationpb.Duration {
 		return x.PollInterval
 	}
 	return nil
+}
+
+func (x *WaitForCodeRequest) GetIssuedAfterUnix() int64 {
+	if x != nil {
+		return x.IssuedAfterUnix
+	}
+	return 0
 }
 
 type WaitForCodeResponse struct {
@@ -2419,11 +2427,12 @@ const file_byte_v_forge_contracts_sms_v1_sms_proto_rawDesc = "" +
 	"activation\x18\x01 \x01(\v2,.byte.v.forge.contracts.sms.v1.SmsActivationR\n" +
 	"activation\x12:\n" +
 	"\x04code\x18\x02 \x01(\v2&.byte.v.forge.contracts.sms.v1.SmsCodeR\x04code\x12=\n" +
-	"\x05error\x18\x03 \x01(\v2'.byte.v.forge.contracts.sms.v1.SmsErrorR\x05error\"\xae\x01\n" +
+	"\x05error\x18\x03 \x01(\v2'.byte.v.forge.contracts.sms.v1.SmsErrorR\x05error\"\xda\x01\n" +
 	"\x12WaitForCodeRequest\x12#\n" +
 	"\ractivation_id\x18\x01 \x01(\tR\factivationId\x123\n" +
 	"\atimeout\x18\x02 \x01(\v2\x19.google.protobuf.DurationR\atimeout\x12>\n" +
-	"\rpoll_interval\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\fpollInterval\"\xde\x01\n" +
+	"\rpoll_interval\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\fpollInterval\x12*\n" +
+	"\x11issued_after_unix\x18\x04 \x01(\x03R\x0fissuedAfterUnix\"\xde\x01\n" +
 	"\x13WaitForCodeResponse\x12L\n" +
 	"\n" +
 	"activation\x18\x01 \x01(\v2,.byte.v.forge.contracts.sms.v1.SmsActivationR\n" +
