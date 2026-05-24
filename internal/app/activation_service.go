@@ -175,6 +175,9 @@ func (s *ActivationService) CheckCode(ctx context.Context, activationID string) 
 			return core.Activation{}, nil, err
 		}
 		return activation, code, nil
+	case core.StatusPendingCode, core.StatusAdditionalCodeRequested:
+		activation.Status = result.Status
+		activation.Code = nil
 	case core.StatusCanceled, core.StatusFailed, core.StatusExpired:
 		activation.Status = result.Status
 	}
