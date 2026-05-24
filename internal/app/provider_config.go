@@ -98,15 +98,21 @@ func (r *ProviderConfigRouteResolver) configForCandidate(ctx context.Context, ca
 }
 
 type ConfiguredProvider struct {
-	key        string
-	configs    ProviderConfigStore
-	timeout    time.Duration
-	activation sync.Map
-	policy     sync.Map
+	key              string
+	configs          ProviderConfigStore
+	timeout          time.Duration
+	defaultHTTPProxy string
+	activation       sync.Map
+	policy           sync.Map
 }
 
-func NewConfiguredProvider(key string, configs ProviderConfigStore, timeout time.Duration) *ConfiguredProvider {
-	return &ConfiguredProvider{key: normalizeProviderKey(key), configs: configs, timeout: timeout}
+func NewConfiguredProvider(key string, configs ProviderConfigStore, timeout time.Duration, defaultHTTPProxy string) *ConfiguredProvider {
+	return &ConfiguredProvider{
+		key:              normalizeProviderKey(key),
+		configs:          configs,
+		timeout:          timeout,
+		defaultHTTPProxy: strings.TrimSpace(defaultHTTPProxy),
+	}
 }
 
 func (p *ConfiguredProvider) Key() string {
@@ -122,7 +128,7 @@ func (p *ConfiguredProvider) AcquireNumber(ctx context.Context, request core.Pro
 	if err != nil {
 		return core.ProviderActivation{}, err
 	}
-	provider, err := providerFromConfig(config, p.timeout)
+	provider, err := providerFromConfig(config, p.timeout, p.defaultHTTPProxy)
 	if err != nil {
 		return core.ProviderActivation{}, err
 	}
@@ -205,7 +211,7 @@ func (p *ConfiguredProvider) GetBalance(ctx context.Context) (core.Money, error)
 	if err != nil {
 		return core.Money{}, err
 	}
-	provider, err := providerFromConfig(config, p.timeout)
+	provider, err := providerFromConfig(config, p.timeout, p.defaultHTTPProxy)
 	if err != nil {
 		return core.Money{}, err
 	}
@@ -227,7 +233,7 @@ func (p *ConfiguredProvider) providerForActivation(ctx context.Context, upstream
 			if err != nil {
 				return nil, err
 			}
-			provider, err := providerFromConfig(config, p.timeout)
+			provider, err := providerFromConfig(config, p.timeout, p.defaultHTTPProxy)
 			if err == nil {
 				p.policy.Store(upstreamActivationID, providerPolicyFromConfig(config, provider.Policy()))
 			}
@@ -238,18 +244,18 @@ func (p *ConfiguredProvider) providerForActivation(ctx context.Context, upstream
 	if err != nil {
 		return nil, err
 	}
-	provider, err := providerFromConfig(config, p.timeout)
+	provider, err := providerFromConfig(config, p.timeout, p.defaultHTTPProxy)
 	if err == nil {
 		p.policy.Store(upstreamActivationID, providerPolicyFromConfig(config, provider.Policy()))
 	}
 	return provider, err
 }
 
-func providerFromConfig(config *smsinternalv1.SmsProviderConfig, timeout time.Duration) (core.Provider, error) {
+func providerFromConfig(config *smsinternalv1.SmsProviderConfig, timeout time.Duration, defaultHTTPProxy string) (core.Provider, error) {
 	if config == nil {
 		return nil, core.NewError(core.CodeRouteNotFound, "sms provider config not found", false)
 	}
-	client, err := httpClientFromConfig(config, timeout)
+	client, err := httpClientFromConfig(config, timeout, defaultHTTPProxy)
 	if err != nil {
 		return nil, err
 	}
@@ -295,9 +301,9 @@ func routeFromProviderConfig(config *smsinternalv1.SmsProviderConfig, requestTar
 	}
 }
 
-func httpClientFromConfig(config *smsinternalv1.SmsProviderConfig, timeout time.Duration) (*http.Client, error) {
+func httpClientFromConfig(config *smsinternalv1.SmsProviderConfig, timeout time.Duration, defaultHTTPProxy string) (*http.Client, error) {
 	transport := http.DefaultTransport.(*http.Transport).Clone()
-	if proxy := strings.TrimSpace(config.GetHttpProxy()); proxy != "" {
+	if proxy := firstNonEmptyString(config.GetHttpProxy(), defaultHTTPProxy); proxy != "" {
 		proxyURL, err := url.Parse(proxy)
 		if err != nil {
 			return nil, core.NewError(core.CodeValidationFailed, "invalid sms provider proxy", false)

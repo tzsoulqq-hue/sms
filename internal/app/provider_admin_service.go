@@ -11,14 +11,21 @@ import (
 )
 
 type ProviderAdminService struct {
-	configs      ProviderConfigStore
-	activations  *ActivationService
-	activationDB ActivationListStore
-	timeout      time.Duration
+	configs          ProviderConfigStore
+	activations      *ActivationService
+	activationDB     ActivationListStore
+	timeout          time.Duration
+	defaultHTTPProxy string
 }
 
-func NewProviderAdminService(configs ProviderConfigStore, activations *ActivationService, activationDB ActivationListStore, timeout time.Duration) *ProviderAdminService {
-	return &ProviderAdminService{configs: configs, activations: activations, activationDB: activationDB, timeout: timeout}
+func NewProviderAdminService(configs ProviderConfigStore, activations *ActivationService, activationDB ActivationListStore, timeout time.Duration, defaultHTTPProxy string) *ProviderAdminService {
+	return &ProviderAdminService{
+		configs:          configs,
+		activations:      activations,
+		activationDB:     activationDB,
+		timeout:          timeout,
+		defaultHTTPProxy: strings.TrimSpace(defaultHTTPProxy),
+	}
 }
 
 func (s *ProviderAdminService) UpsertProviderConfig(ctx context.Context, config *smsinternalv1.SmsProviderConfig) (*smsinternalv1.SmsProviderConfig, error) {
@@ -60,7 +67,7 @@ func (s *ProviderAdminService) ListRouteOptions(ctx context.Context, providerCon
 	if !config.GetEnabled() {
 		return nil, core.NewError(core.CodeValidationFailed, "sms provider config is disabled", false)
 	}
-	provider, err := providerFromConfig(config, s.timeout)
+	provider, err := providerFromConfig(config, s.timeout, s.defaultHTTPProxy)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +105,7 @@ func (s *ProviderAdminService) GetProviderBalance(ctx context.Context, providerC
 	if !config.GetEnabled() {
 		return core.Money{}, core.NewError(core.CodeValidationFailed, "sms provider config is disabled", false)
 	}
-	provider, err := providerFromConfig(config, s.timeout)
+	provider, err := providerFromConfig(config, s.timeout, s.defaultHTTPProxy)
 	if err != nil {
 		return core.Money{}, err
 	}

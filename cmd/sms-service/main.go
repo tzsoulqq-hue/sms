@@ -21,6 +21,7 @@ type config struct {
 	ListenAddr         string
 	PGDSN              string
 	HTTPTimeoutSeconds int
+	ProviderHTTPProxy  string
 }
 
 func main() {
@@ -43,15 +44,15 @@ func main() {
 		activationStore,
 		app.NewProviderConfigRouteResolver(configStore),
 		[]core.Provider{
-			app.NewConfiguredProvider("5sim", configStore, httpTimeout),
-			app.NewConfiguredProvider("herosms", configStore, httpTimeout),
-			app.NewConfiguredProvider("smsbower", configStore, httpTimeout),
+			app.NewConfiguredProvider("5sim", configStore, httpTimeout, cfg.ProviderHTTPProxy),
+			app.NewConfiguredProvider("herosms", configStore, httpTimeout, cfg.ProviderHTTPProxy),
+			app.NewConfiguredProvider("smsbower", configStore, httpTimeout, cfg.ProviderHTTPProxy),
 		},
 		app.SystemClock{},
 		app.RandomIDGenerator{},
 	)
 	activationService.StartCancelScheduler(ctx, 30*time.Second)
-	adminService := app.NewProviderAdminService(configStore, activationService, activationStore, httpTimeout)
+	adminService := app.NewProviderAdminService(configStore, activationService, activationStore, httpTimeout, cfg.ProviderHTTPProxy)
 
 	listener, err := net.Listen("tcp", cfg.ListenAddr)
 	if err != nil {
@@ -72,6 +73,7 @@ func loadConfig() config {
 		ListenAddr:         envDefault("SMS_LISTEN_ADDR", ":50051"),
 		PGDSN:              envDefault("SMS_PG_DSN", envDefault("PG_DSN", "")),
 		HTTPTimeoutSeconds: envInt("SMS_HTTP_TIMEOUT_SECONDS", 20),
+		ProviderHTTPProxy:  envDefault("SMS_PROVIDER_HTTP_PROXY", ""),
 	}
 	if cfg.HTTPTimeoutSeconds <= 0 {
 		cfg.HTTPTimeoutSeconds = 20
