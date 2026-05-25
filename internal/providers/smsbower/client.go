@@ -3,7 +3,9 @@ package smsbower
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
 	"net/url"
 	"strconv"
 	"strings"
@@ -15,8 +17,9 @@ import (
 )
 
 const (
-	DefaultEndpoint = "https://smsbower.page/stubs/handler_api.php"
-	ProviderKey     = "smsbower"
+	DefaultEndpoint                   = "https://smsbower.page/stubs/handler_api.php"
+	ProviderKey                       = "smsbower"
+	defaultMinimumStockForLowestPrice = 5
 )
 
 type Config struct {
@@ -73,6 +76,16 @@ func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquire
 	}
 	request.Route.UpstreamServiceKey = service
 	request.Route.ProviderCountryID = country
+	request.Route.IncludeUpstreamProviderID = c.effectiveProviderIDs(ctx, request)
+	activation, err := c.acquireNumberOnce(ctx, request)
+	if err == nil || len(request.Route.IncludeUpstreamProviderID) == 0 || !isNoNumberError(err) {
+		return activation, err
+	}
+	request.Route.IncludeUpstreamProviderID = nil
+	return c.acquireNumberOnce(ctx, request)
+}
+
+func (c *Client) acquireNumberOnce(ctx context.Context, request core.ProviderAcquireRequest) (core.ProviderActivation, error) {
 	if c.requiresGetNumber(request) {
 		params := c.acquireParams(request, false)
 		result, err := c.api.Do(ctx, "getNumber", params)
@@ -99,6 +112,99 @@ func (c *Client) AcquireNumber(ctx context.Context, request core.ProviderAcquire
 		return core.ProviderActivation{}, handlerapi.MapTextError(result)
 	}
 	return core.ProviderActivation{}, err
+}
+
+func isNoNumberError(err error) bool {
+	var coreErr *core.Error
+	if errors.As(err, &coreErr) {
+		return coreErr.Code == core.CodeNoNumberAvailable
+	}
+	return strings.Contains(strings.ToLower(err.Error()), "no upstream number available")
+}
+
+func (c *Client) effectiveProviderIDs(ctx context.Context, request core.ProviderAcquireRequest) []string {
+	if len(request.Route.IncludeUpstreamProviderID) > 0 {
+		return request.Route.IncludeUpstreamProviderID
+	}
+	if optionBool(request.Route.ProviderOptions, "disable_market_provider_selection") {
+		return nil
+	}
+	threshold := optionInt(request.Route.ProviderOptions, "min_stock_threshold", defaultMinimumStockForLowestPrice)
+	if threshold <= 0 {
+		return nil
+	}
+	offers, err := c.ListPriceOffers(ctx, request.Route.UpstreamServiceKey, request.Route.ProviderCountryID)
+	if err != nil {
+		return nil
+	}
+	return selectProviderIDsByStock(offers, threshold)
+}
+
+func selectProviderIDsByStock(offers []PriceOffer, threshold int) []string {
+	groups := map[string]*priceGroup{}
+	for _, offer := range offers {
+		providerID := strings.TrimSpace(offer.ProviderID)
+		if providerID == "" || offer.AvailableCount <= 0 {
+			continue
+		}
+		priceText := strings.TrimSpace(offer.Price.AmountDecimal)
+		price, err := strconv.ParseFloat(priceText, 64)
+		if err != nil || math.IsInf(price, 0) || math.IsNaN(price) {
+			continue
+		}
+		group := groups[priceText]
+		if group == nil {
+			group = &priceGroup{price: price, priceText: priceText}
+			groups[priceText] = group
+		}
+		group.count += offer.AvailableCount
+		group.providerIDs = append(group.providerIDs, providerID)
+	}
+	if len(groups) == 0 {
+		return nil
+	}
+	ordered := make([]*priceGroup, 0, len(groups))
+	for _, group := range groups {
+		ordered = append(ordered, group)
+	}
+	sortPriceGroups(ordered)
+	selected := ordered[0]
+	for _, group := range ordered {
+		if group.count >= threshold {
+			selected = group
+			break
+		}
+	}
+	return selected.providerIDs
+}
+
+func sortPriceGroups(groups []*priceGroup) {
+	for i := 1; i < len(groups); i++ {
+		current := groups[i]
+		j := i - 1
+		for j >= 0 && priceGroupLess(current, groups[j]) {
+			groups[j+1] = groups[j]
+			j--
+		}
+		groups[j+1] = current
+	}
+}
+
+type priceGroup struct {
+	price       float64
+	priceText   string
+	count       int
+	providerIDs []string
+}
+
+func priceGroupLess(a, b *priceGroup) bool {
+	if a.price != b.price {
+		return a.price < b.price
+	}
+	if a.count != b.count {
+		return a.count > b.count
+	}
+	return a.priceText < b.priceText
 }
 
 func (c *Client) GetStatus(ctx context.Context, upstreamActivationID string) (core.ProviderCodeResult, error) {
@@ -377,6 +483,33 @@ func firstNonEmpty(values ...string) string {
 		}
 	}
 	return ""
+}
+
+func optionInt(options map[string]string, key string, fallback int) int {
+	if options == nil {
+		return fallback
+	}
+	value := strings.TrimSpace(options[key])
+	if value == "" {
+		return fallback
+	}
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return fallback
+	}
+	return parsed
+}
+
+func optionBool(options map[string]string, key string) bool {
+	if options == nil {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(options[key])) {
+	case "1", "true", "yes", "on":
+		return true
+	default:
+		return false
+	}
 }
 
 func rawJSONScalar(raw json.RawMessage) string {

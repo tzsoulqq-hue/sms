@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -23,6 +24,10 @@ type ActivationService struct {
 	providers map[string]core.Provider
 	clock     core.Clock
 	ids       core.IDGenerator
+}
+
+type profileRouteCandidateResolver interface {
+	ResolveProfileCandidates(context.Context, core.RouteRequest) ([]core.Route, error)
 }
 
 func NewActivationService(
@@ -54,6 +59,9 @@ func NewActivationService(
 func (s *ActivationService) AcquireNumber(ctx context.Context, cmd core.AcquireNumberCommand) (core.Activation, error) {
 	if cmd.ProfileKey == "" && cmd.Target.ApplicationKey == "" {
 		return core.Activation{}, core.NewError(core.CodeValidationFailed, "profile_key or application_key is required", false)
+	}
+	if resolver, ok := s.routes.(profileRouteCandidateResolver); ok && cmd.ProfileKey != "" {
+		return s.acquireNumberFromProfileCandidates(ctx, cmd, resolver)
 	}
 	route, err := s.routes.Resolve(ctx, core.RouteRequest{
 		ProfileKey:       cmd.ProfileKey,
@@ -128,6 +136,117 @@ func (s *ActivationService) AcquireNumber(ctx context.Context, cmd core.AcquireN
 		return core.Activation{}, err
 	}
 	return activation, nil
+}
+
+func (s *ActivationService) acquireNumberFromProfileCandidates(ctx context.Context, cmd core.AcquireNumberCommand, resolver profileRouteCandidateResolver) (core.Activation, error) {
+	routes, err := resolver.ResolveProfileCandidates(ctx, core.RouteRequest{
+		ProfileKey:       cmd.ProfileKey,
+		Target:           cmd.Target,
+		ProviderKey:      cmd.ProviderKey,
+		ProviderConfigID: cmd.ProviderConfigID,
+	})
+	if err != nil {
+		return core.Activation{}, err
+	}
+	if len(routes) == 0 {
+		return core.Activation{}, core.NewError(core.CodeRouteNotFound, "sms route profile has no matching route", false)
+	}
+	var lastErr error
+	for _, route := range routes {
+		attempt := cmd
+		attempt.Target = withRouteTargetDefaults(attempt.Target, route)
+		activation, err := s.acquireNumberWithRoute(ctx, attempt, route)
+		if err == nil {
+			return activation, nil
+		}
+		lastErr = err
+		if !shouldTryNextRouteOnAcquireError(err) {
+			return core.Activation{}, err
+		}
+	}
+	if lastErr != nil {
+		return core.Activation{}, lastErr
+	}
+	return core.Activation{}, core.NewError(core.CodeNoNumberAvailable, "no upstream number available", true)
+}
+
+func (s *ActivationService) acquireNumberWithRoute(ctx context.Context, cmd core.AcquireNumberCommand, route core.Route) (core.Activation, error) {
+	provider, err := s.provider(route.ProviderKey)
+	if err != nil {
+		return core.Activation{}, err
+	}
+	if cmd.RequestID == "" {
+		cmd.RequestID = s.ids.NewID("req_")
+	}
+
+	providerActivation, err := provider.AcquireNumber(ctx, core.ProviderAcquireRequest{
+		RequestID:     cmd.RequestID,
+		Route:         route,
+		Target:        cmd.Target,
+		LeaseDuration: cmd.LeaseDuration,
+	})
+	if err != nil {
+		return core.Activation{}, err
+	}
+
+	now := s.clock.Now()
+	acquiredAt := providerActivation.AcquiredAt
+	if acquiredAt.IsZero() {
+		acquiredAt = now
+	}
+	policy := providerPolicyForUpstreamActivation(provider, providerActivation.UpstreamActivationID).WithDefaults()
+	ttl := policy.ActivationTTL
+	if cmd.LeaseDuration > 0 && cmd.LeaseDuration < ttl {
+		ttl = cmd.LeaseDuration
+	}
+	expiresAt := providerActivation.ExpiresAt
+	if expiresAt.IsZero() {
+		expiresAt = acquiredAt.Add(ttl)
+	} else if cmd.LeaseDuration > 0 {
+		requestExpiresAt := acquiredAt.Add(cmd.LeaseDuration)
+		if requestExpiresAt.Before(expiresAt) {
+			expiresAt = requestExpiresAt
+		}
+	}
+	var cancelAllowedAt time.Time
+	if policy.CancelAllowedAfter > 0 {
+		cancelAllowedAt = acquiredAt.Add(policy.CancelAllowedAfter)
+	}
+	activation := core.Activation{
+		ID:                       s.ids.NewID("act_"),
+		RequestID:                cmd.RequestID,
+		ProviderConfigID:         route.ProviderOptions["provider_config_id"],
+		ProviderKey:              provider.Key(),
+		UpstreamActivationID:     providerActivation.UpstreamActivationID,
+		UpstreamOperator:         providerActivation.UpstreamOperator,
+		Target:                   cmd.Target,
+		PhoneNumber:              providerActivation.PhoneNumber,
+		Status:                   core.StatusPendingCode,
+		Price:                    providerActivation.Price,
+		AcquiredAt:               acquiredAt,
+		ExpiresAt:                expiresAt,
+		UpdatedAt:                now,
+		CancelAllowedAt:          cancelAllowedAt,
+		CanRequestAdditionalCode: providerActivation.CanRequestAdditionalCode,
+		Labels:                   cloneMap(cmd.Labels),
+	}
+	if err := s.store.Save(ctx, activation); err != nil {
+		return core.Activation{}, err
+	}
+	return activation, nil
+}
+
+func shouldTryNextRouteOnAcquireError(err error) bool {
+	var smsErr *core.Error
+	if !errors.As(err, &smsErr) || smsErr == nil {
+		return false
+	}
+	switch smsErr.Code {
+	case core.CodeNoNumberAvailable, core.CodeSupplyUnavailable, core.CodeRouteNotFound, core.CodePriceLimitExceeded:
+		return smsErr.Retryable || smsErr.Code == core.CodeNoNumberAvailable || smsErr.Code == core.CodePriceLimitExceeded
+	default:
+		return false
+	}
 }
 
 func (s *ActivationService) GetActivation(ctx context.Context, activationID string) (core.Activation, error) {

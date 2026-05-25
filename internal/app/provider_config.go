@@ -83,6 +83,31 @@ func (r *ProviderConfigRouteResolver) resolveProfile(ctx context.Context, reques
 	return route, nil
 }
 
+func (r *ProviderConfigRouteResolver) ResolveProfileCandidates(ctx context.Context, request core.RouteRequest) ([]core.Route, error) {
+	profile, err := r.configs.GetRouteProfile(ctx, request.ProfileKey)
+	if err != nil {
+		return nil, err
+	}
+	candidates, err := selectRouteCandidates(profile, request)
+	if err != nil {
+		return nil, err
+	}
+	routes := make([]core.Route, 0, len(candidates))
+	for _, selected := range candidates {
+		config, err := r.configForCandidate(ctx, selected.candidate, selected.target)
+		if err != nil {
+			return nil, err
+		}
+		route := routeFromProviderConfig(config, selected.target)
+		route.ApplicationKey = selected.target.ApplicationKey
+		route.CountryISO2 = selected.target.CountryISO2
+		route.CountryCallingCode = selected.target.CountryCallingCode
+		applyRouteCandidate(selected.candidate, &route)
+		routes = append(routes, route)
+	}
+	return routes, nil
+}
+
 func (r *ProviderConfigRouteResolver) configForCandidate(ctx context.Context, candidate *smsinternalv1.SmsRouteCandidate, target core.Target) (*smsinternalv1.SmsProviderConfig, error) {
 	if strings.TrimSpace(candidate.GetProviderConfigId()) != "" {
 		config, err := r.configs.GetProviderConfig(ctx, candidate.GetProviderConfigId())

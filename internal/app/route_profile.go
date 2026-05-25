@@ -10,29 +10,51 @@ import (
 )
 
 func selectRouteCandidate(profile *smsinternalv1.SmsRouteProfile, request core.RouteRequest) (*smsinternalv1.SmsRouteCandidate, core.Target, error) {
+	candidates, err := selectRouteCandidates(profile, request)
+	if err != nil {
+		return nil, core.Target{}, err
+	}
+	selected := candidates[0]
+	return selected.candidate, selected.target, nil
+}
+
+type selectedRouteCandidate struct {
+	candidate *smsinternalv1.SmsRouteCandidate
+	target    core.Target
+	rank      routeRank
+}
+
+func selectRouteCandidates(profile *smsinternalv1.SmsRouteProfile, request core.RouteRequest) ([]selectedRouteCandidate, error) {
 	if profile == nil || !profile.GetEnabled() {
-		return nil, core.Target{}, core.NewError(core.CodeRouteNotFound, "sms route profile is disabled or missing", false)
+		return nil, core.NewError(core.CodeRouteNotFound, "sms route profile is disabled or missing", false)
 	}
 	baseTarget := mergeRouteTarget(request.Target, targetFromProto(profile.GetDefaultTarget()))
-	var best *smsinternalv1.SmsRouteCandidate
-	bestTarget := core.Target{}
-	bestRank := routeRank{priority: math.MaxInt32, price: math.Inf(1)}
+	var selected []selectedRouteCandidate
 	for _, candidate := range profile.GetRoutes() {
 		target := mergeRouteTarget(targetFromProto(candidate.GetTarget()), baseTarget)
 		if !routeCandidateMatches(profile, candidate, target, request) {
 			continue
 		}
 		rank := rankRouteCandidate(profile.GetSelectionStrategy(), candidate, target)
-		if rank.betterThan(bestRank) {
-			best = candidate
-			bestTarget = target
-			bestRank = rank
+		selected = append(selected, selectedRouteCandidate{candidate: candidate, target: target, rank: rank})
+	}
+	if len(selected) == 0 {
+		return nil, core.NewError(core.CodeRouteNotFound, "sms route profile has no matching route", false)
+	}
+	sortSelectedRouteCandidates(selected)
+	return selected, nil
+}
+
+func sortSelectedRouteCandidates(candidates []selectedRouteCandidate) {
+	for i := 1; i < len(candidates); i++ {
+		current := candidates[i]
+		j := i - 1
+		for j >= 0 && current.rank.betterThan(candidates[j].rank) {
+			candidates[j+1] = candidates[j]
+			j--
 		}
+		candidates[j+1] = current
 	}
-	if best == nil {
-		return nil, core.Target{}, core.NewError(core.CodeRouteNotFound, "sms route profile has no matching route", false)
-	}
-	return best, bestTarget, nil
 }
 
 func routeCandidateMatches(profile *smsinternalv1.SmsRouteProfile, candidate *smsinternalv1.SmsRouteCandidate, target core.Target, request core.RouteRequest) bool {
