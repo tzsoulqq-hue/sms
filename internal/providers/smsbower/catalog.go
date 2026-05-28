@@ -24,6 +24,7 @@ type PriceOffer struct {
 	CountryID          string
 	UpstreamServiceKey string
 	ProviderID         string
+	Quality            string
 	Price              core.Money
 	AvailableCount     int
 }
@@ -141,6 +142,12 @@ func (c *Client) ListPriceOffers(ctx context.Context, serviceKey, countryID stri
 		Count      int             `json:"count"`
 		Price      json.RawMessage `json:"price"`
 		ProviderID json.RawMessage `json:"provider_id"`
+		Quality    json.RawMessage `json:"quality"`
+		Rank       json.RawMessage `json:"rank"`
+		Rating     json.RawMessage `json:"rating"`
+		Tier       json.RawMessage `json:"tier"`
+		Type       json.RawMessage `json:"type"`
+		Grade      json.RawMessage `json:"grade"`
 	}
 	if err := decodeJSONObject(result, &raw); err != nil {
 		return nil, err
@@ -153,6 +160,7 @@ func (c *Client) ListPriceOffers(ctx context.Context, serviceKey, countryID stri
 					CountryID:          cID,
 					UpstreamServiceKey: svc,
 					ProviderID:         firstNonEmpty(rawJSONScalar(offer.ProviderID), providerID),
+					Quality:            firstNonEmpty(rawJSONScalar(offer.Quality), rawJSONScalar(offer.Rank), rawJSONScalar(offer.Rating), rawJSONScalar(offer.Tier), rawJSONScalar(offer.Type), rawJSONScalar(offer.Grade)),
 					Price:              core.Money{AmountDecimal: rawJSONScalar(offer.Price)},
 					AvailableCount:     offer.Count,
 				})

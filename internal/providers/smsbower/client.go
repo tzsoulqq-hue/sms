@@ -137,10 +137,30 @@ func (c *Client) effectiveProviderIDs(ctx context.Context, request core.Provider
 	if err != nil {
 		return nil
 	}
-	return selectProviderIDsByStock(offers, threshold)
+	return selectProviderIDsByStock(offers, threshold, request.Target.MinPrice, request.Target.MaxPrice, request.Route.MinPrice, request.Route.MaxPrice)
 }
 
-func selectProviderIDsByStock(offers []PriceOffer, threshold int) []string {
+func selectProviderIDsByStock(offers []PriceOffer, threshold int, bounds ...core.Money) []string {
+	minPrice, hasMinPrice := firstParsedMoney(moneyAt(bounds, 0), moneyAt(bounds, 2))
+	maxPrice, hasMaxPrice := firstParsedMoney(moneyAt(bounds, 1), moneyAt(bounds, 3))
+	eligible := make([]PriceOffer, 0, len(offers))
+	for _, offer := range offers {
+		if !isAllowedQuality(offer.Quality) {
+			continue
+		}
+		price, ok := parseOfferPrice(offer)
+		if !ok {
+			continue
+		}
+		if hasMinPrice && price < minPrice {
+			continue
+		}
+		if hasMaxPrice && price > maxPrice {
+			continue
+		}
+		eligible = append(eligible, offer)
+	}
+	offers = eligible
 	groups := map[string]*priceGroup{}
 	for _, offer := range offers {
 		providerID := strings.TrimSpace(offer.ProviderID)
@@ -148,8 +168,8 @@ func selectProviderIDsByStock(offers []PriceOffer, threshold int) []string {
 			continue
 		}
 		priceText := strings.TrimSpace(offer.Price.AmountDecimal)
-		price, err := strconv.ParseFloat(priceText, 64)
-		if err != nil || math.IsInf(price, 0) || math.IsNaN(price) {
+		price, ok := parseOfferPrice(offer)
+		if !ok {
 			continue
 		}
 		group := groups[priceText]
@@ -158,7 +178,13 @@ func selectProviderIDsByStock(offers []PriceOffer, threshold int) []string {
 			groups[priceText] = group
 		}
 		group.count += offer.AvailableCount
-		group.providerIDs = append(group.providerIDs, providerID)
+		if isGoldQuality(offer.Quality) {
+			group.goldCount += offer.AvailableCount
+			group.goldProviderIDs = append(group.goldProviderIDs, providerID)
+		} else {
+			group.silverCount += offer.AvailableCount
+			group.silverProviderIDs = append(group.silverProviderIDs, providerID)
+		}
 	}
 	if len(groups) == 0 {
 		return nil
@@ -175,7 +201,54 @@ func selectProviderIDsByStock(offers []PriceOffer, threshold int) []string {
 			break
 		}
 	}
-	return selected.providerIDs
+	return selected.providerIDs()
+}
+
+func parseOfferPrice(offer PriceOffer) (float64, bool) {
+	parsed, err := strconv.ParseFloat(strings.TrimSpace(offer.Price.AmountDecimal), 64)
+	if err != nil || math.IsInf(parsed, 0) || math.IsNaN(parsed) {
+		return 0, false
+	}
+	return parsed, true
+}
+
+func isAllowedQuality(value string) bool {
+	return isGoldQuality(value) || isSilverQuality(value)
+}
+
+func isGoldQuality(value string) bool {
+	return normalizeQuality(value) == "gold"
+}
+
+func isSilverQuality(value string) bool {
+	return normalizeQuality(value) == "silver"
+}
+
+func normalizeQuality(value string) string {
+	var out strings.Builder
+	for _, r := range strings.ToLower(strings.TrimSpace(value)) {
+		if r >= 'a' && r <= 'z' {
+			out.WriteRune(r)
+		}
+	}
+	return out.String()
+}
+
+func moneyAt(values []core.Money, index int) core.Money {
+	if index < 0 || index >= len(values) {
+		return core.Money{}
+	}
+	return values[index]
+}
+
+func firstParsedMoney(values ...core.Money) (float64, bool) {
+	for _, value := range values {
+		parsed, err := strconv.ParseFloat(strings.TrimSpace(value.AmountDecimal), 64)
+		if err == nil && !math.IsInf(parsed, 0) && !math.IsNaN(parsed) {
+			return parsed, true
+		}
+	}
+	return 0, false
 }
 
 func sortPriceGroups(groups []*priceGroup) {
@@ -191,15 +264,31 @@ func sortPriceGroups(groups []*priceGroup) {
 }
 
 type priceGroup struct {
-	price       float64
-	priceText   string
-	count       int
-	providerIDs []string
+	price             float64
+	priceText         string
+	count             int
+	goldCount         int
+	silverCount       int
+	goldProviderIDs   []string
+	silverProviderIDs []string
+}
+
+func (g *priceGroup) providerIDs() []string {
+	if g == nil {
+		return nil
+	}
+	if len(g.goldProviderIDs) > 0 {
+		return g.goldProviderIDs
+	}
+	return g.silverProviderIDs
 }
 
 func priceGroupLess(a, b *priceGroup) bool {
 	if a.price != b.price {
 		return a.price < b.price
+	}
+	if (a.goldCount > 0) != (b.goldCount > 0) {
+		return a.goldCount > 0
 	}
 	if a.count != b.count {
 		return a.count > b.count
